@@ -27,7 +27,6 @@ export default function FailScreen() {
           <Text style={styles.buttonText}>FAZER LOGIN</Text>
         </Pressable>
       </View>
-      
 
     </View>
   );
