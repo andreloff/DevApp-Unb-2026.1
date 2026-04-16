@@ -1,12 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from 'expo-router';
 
 export default function FailScreen() {
+
+  const router = useRouter();
+
+  const onBackArrowPress = async () => {
+    router.back();
+  };
+
   return (
     <View style={styles.bgContainer}>
       
       <View style={styles.headerContainer}>
-        <Pressable style={styles.menuPressable}>
+        <Pressable 
+          style={styles.menuPressable}
+          onPress={onBackArrowPress}
+        >
           <Ionicons name="arrow-back-outline" size={32} color="#757575"/>
         </Pressable>
         <Text style={styles.headerText}>Cadastro</Text>

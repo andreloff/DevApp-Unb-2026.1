@@ -2,6 +2,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useRouter } from 'expo-router';
 
 
 export default function LoginScreen() {
@@ -10,6 +11,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState<string>("");
 
   const { handleLogin, handleRegister, error } = useAuth();
+  const router = useRouter();
+
+  const onLoginPress = async () => {
+    const success = await handleLogin(email, password);
+
+    if (success) {
+      console.log("Indo pra home...");
+      router.replace('/(app)/homeScreen');
+    } else {
+      console.log("Login falhou");
+    }
+  };
 
   return (
     <View style={styles.bgContainer}>
@@ -39,7 +52,7 @@ export default function LoginScreen() {
       
       <Pressable 
         style={styles.bodyButton}
-        onPress={() => handleLogin(email, password)}
+        onPress={onLoginPress}
       >
         <Text style={styles.buttonText}>ENTRAR</Text>
       </Pressable>

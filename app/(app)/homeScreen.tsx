@@ -1,24 +1,43 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from 'expo-router';
 
-export default function InitialScreen() {
+export default function HomeScreen() {
+
+  const router = useRouter();
+
+  const onAdoptPress = async () => {
+    router.push('/(app)/failScreen');
+  };
+
+
   return (
     <View style={styles.bgContainer}>
+
       <Pressable style={styles.menuPressable}>
         <Ionicons name="menu-outline" size={32} color="#88C9BF"/>
       </Pressable>
+
       <Text style={styles.titleText}>Olá</Text>
+
       <Text style={styles.bodyText}>Bem vindo ao Meau!{"\n"}Aqui você pode adotar, doar e ajudar cães e gatos com facilidade. Qual o seu interesse?</Text>
-      <Pressable style={styles.bodyButton}>
+
+      <Pressable 
+        style={styles.bodyButton}
+        onPress={onAdoptPress}
+      >
         <Text style={styles.buttonText}>ADOTAR</Text>
       </Pressable>
+
       <Pressable style={styles.bodyButton}>
         <Text style={styles.buttonText}>AJUDAR</Text>
       </Pressable>
+
       <Pressable style={styles.bodyButton}>
         <Text style={styles.buttonText}>CADASTRAR ANIMAL</Text>
       </Pressable>
+
       <Text style={styles.loginText}>login</Text>
       <Image
         source={require('@/assets/images/meau_marca_2.png')}
