@@ -4,8 +4,8 @@ export default function Index() {
   const isLogged = true;
 
   if (isLogged) {
-    return <Redirect href="(app)/homeScreen" />;
+    return <Redirect href="/(drawer)/(home)" />;
   }
 
-  return <Redirect href="(auth)/loginScreen" />;
+  return <Redirect href="/loginScreen" />;
 }

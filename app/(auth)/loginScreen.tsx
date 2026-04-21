@@ -1,8 +1,8 @@
 import { useAuth } from '@/src/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useRouter } from 'expo-router';
 
 
 export default function LoginScreen() {
@@ -18,7 +18,7 @@ export default function LoginScreen() {
 
     if (success) {
       console.log("Indo pra home...");
-      router.replace('/(app)/homeScreen');
+      router.replace('/(drawer)/(home)');
     } else {
       console.log("Login falhou");
     }

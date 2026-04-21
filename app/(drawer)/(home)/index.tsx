@@ -1,21 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
 import { Image } from 'expo-image';
+import { useNavigation, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from 'expo-router';
+
 
 export default function HomeScreen() {
 
   const router = useRouter();
+  const navigation = useNavigation();
 
   const onAdoptPress = async () => {
-    router.push('/(app)/failScreen');
+    router.push('/failScreen');
   };
 
+  const onMenuPress = async () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
 
+  
   return (
     <View style={styles.bgContainer}>
 
-      <Pressable style={styles.menuPressable}>
+      <Pressable 
+        style={styles.menuPressable}
+        onPress={onMenuPress}
+      >
         <Ionicons name="menu-outline" size={32} color="#88C9BF"/>
       </Pressable>
 
