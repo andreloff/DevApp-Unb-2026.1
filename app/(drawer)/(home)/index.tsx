@@ -3,6 +3,7 @@ import { DrawerActions } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useNavigation, useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -20,42 +21,48 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.bgContainer}>
-      <Pressable style={styles.menuPressable} onPress={onMenuPress}>
-        <Ionicons name="menu-outline" size={32} color="#88C9BF" />
-      </Pressable>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.bgContainer}>
+        <Pressable style={styles.menuPressable} onPress={onMenuPress}>
+          <Ionicons name="menu-outline" size={32} color="#88C9BF" />
+        </Pressable>
 
-      <Text style={styles.titleText}>Olá</Text>
+        <Text style={styles.titleText}>Olá</Text>
 
-      <Text style={styles.bodyText}>
-        Bem vindo ao Meau!{"\n"}Aqui você pode adotar, doar e ajudar cães e
-        gatos com facilidade. Qual o seu interesse?
-      </Text>
+        <Text style={styles.bodyText}>
+          Bem vindo ao Meau!{"\n"}Aqui você pode adotar, doar e ajudar cães e
+          gatos com facilidade. Qual o seu interesse?
+        </Text>
 
-      <Pressable style={styles.bodyButton} onPress={onAdoptPress}>
-        <Text style={styles.buttonText}>ADOTAR</Text>
-      </Pressable>
+        <Pressable style={styles.bodyButton} onPress={onAdoptPress}>
+          <Text style={styles.buttonText}>ADOTAR</Text>
+        </Pressable>
 
-      <Pressable style={styles.bodyButton}>
-        <Text style={styles.buttonText}>AJUDAR</Text>
-      </Pressable>
+        <Pressable style={styles.bodyButton}>
+          <Text style={styles.buttonText}>AJUDAR</Text>
+        </Pressable>
 
-      <Pressable style={styles.bodyButton}>
-        <Text style={styles.buttonText}>CADASTRAR ANIMAL</Text>
-      </Pressable>
+        <Pressable style={styles.bodyButton}>
+          <Text style={styles.buttonText}>CADASTRAR ANIMAL</Text>
+        </Pressable>
 
-      <Text style={styles.loginText} onPress={onLoginPress}>
-        login
-      </Text>
-      <Image
-        source={require("@/assets/images/meau_marca_2.png")}
-        style={styles.meauLogoImage}
-      />
-    </View>
+        <Text style={styles.loginText} onPress={onLoginPress}>
+          login
+        </Text>
+        <Image
+          source={require("@/assets/images/meau_marca_2.png")}
+          style={styles.meauLogoImage}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#FAFAFA", // Cor de fundo que "beija" a barra de status
+  },
   bgContainer: {
     flex: 1,
     alignItems: "center",
