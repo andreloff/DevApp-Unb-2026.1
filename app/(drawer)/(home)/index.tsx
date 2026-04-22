@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 100,
     color: "#FFD358",
+    fontFamily: "Courgette_400Regular",
   },
 
   bodyText: {
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
     margin: 20,
     fontSize: 20,
     color: "#757575",
+    fontFamily: "Roboto_400Regular",
   },
 
   bodyButton: {
