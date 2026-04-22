@@ -1,24 +1,22 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from 'expo-router';
 
 export default function FailScreen() {
-
   const router = useRouter();
 
   const onBackArrowPress = async () => {
     router.back();
   };
+  const onLoginPress = async () => {
+    router.push("/loginScreen");
+  };
 
   return (
     <View style={styles.bgContainer}>
-      
       <View style={styles.headerContainer}>
-        <Pressable 
-          style={styles.menuPressable}
-          onPress={onBackArrowPress}
-        >
-          <Ionicons name="arrow-back-outline" size={32} color="#757575"/>
+        <Pressable style={styles.menuPressable} onPress={onBackArrowPress}>
+          <Ionicons name="arrow-back-outline" size={32} color="#757575" />
         </Pressable>
         <Text style={styles.headerText}>Cadastro</Text>
       </View>
@@ -26,7 +24,9 @@ export default function FailScreen() {
       <Text style={styles.titleText}>Ops!</Text>
 
       <View style={bodyStyles.bodyContainer}>
-        <Text style={styles.buttonText}>Você não pode realizar esta ação sem possuir um cadastro.</Text>
+        <Text style={styles.buttonText}>
+          Você não pode realizar esta ação sem possuir um cadastro.
+        </Text>
         <Pressable style={styles.bodyButton}>
           <Text style={styles.buttonText}>FAZER CADASTRO</Text>
         </Pressable>
@@ -34,17 +34,15 @@ export default function FailScreen() {
 
       <View style={bodyStyles.bodyContainer}>
         <Text style={styles.buttonText}>Já possui cadastro?</Text>
-        <Pressable style={styles.bodyButton}>
+        <Pressable style={styles.bodyButton} onPress={onLoginPress}>
           <Text style={styles.buttonText}>FAZER LOGIN</Text>
         </Pressable>
       </View>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-
   bgContainer: {
     flex: 1,
     alignItems: "center",
@@ -78,9 +76,8 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     textAlign: "center",
     fontSize: 60,
-    color: "#88C9BF"
+    color: "#88C9BF",
   },
-  
 
   bodyButton: {
     width: 300,
@@ -95,24 +92,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: 20,
     fontSize: 18,
-    color: "#343434"
+    color: "#343434",
   },
-
-})
+});
 
 const bodyStyles = StyleSheet.create({
-
   bodyContainer: {
     alignItems: "center",
     width: "100%",
     paddingTop: 30,
   },
 
-  inputText:{
+  inputText: {
     width: 340,
     height: 60,
     padding: 14,
     elevation: 1,
   },
-
-})
+});

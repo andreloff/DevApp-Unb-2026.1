@@ -1,42 +1,38 @@
-import { Ionicons } from '@expo/vector-icons';
-import { DrawerActions } from '@react-navigation/native';
-import { Image } from 'expo-image';
-import { useNavigation, useRouter } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
+import { DrawerActions } from "@react-navigation/native";
+import { Image } from "expo-image";
+import { useNavigation, useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-
 export default function HomeScreen() {
-
   const router = useRouter();
   const navigation = useNavigation();
 
   const onAdoptPress = async () => {
-    router.push('/failScreen');
+    router.push("/failScreen");
+  };
+  const onLoginPress = async () => {
+    router.push("/loginScreen");
   };
 
   const onMenuPress = async () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
-  
   return (
     <View style={styles.bgContainer}>
-
-      <Pressable 
-        style={styles.menuPressable}
-        onPress={onMenuPress}
-      >
-        <Ionicons name="menu-outline" size={32} color="#88C9BF"/>
+      <Pressable style={styles.menuPressable} onPress={onMenuPress}>
+        <Ionicons name="menu-outline" size={32} color="#88C9BF" />
       </Pressable>
 
       <Text style={styles.titleText}>Olá</Text>
 
-      <Text style={styles.bodyText}>Bem vindo ao Meau!{"\n"}Aqui você pode adotar, doar e ajudar cães e gatos com facilidade. Qual o seu interesse?</Text>
+      <Text style={styles.bodyText}>
+        Bem vindo ao Meau!{"\n"}Aqui você pode adotar, doar e ajudar cães e
+        gatos com facilidade. Qual o seu interesse?
+      </Text>
 
-      <Pressable 
-        style={styles.bodyButton}
-        onPress={onAdoptPress}
-      >
+      <Pressable style={styles.bodyButton} onPress={onAdoptPress}>
         <Text style={styles.buttonText}>ADOTAR</Text>
       </Pressable>
 
@@ -48,18 +44,18 @@ export default function HomeScreen() {
         <Text style={styles.buttonText}>CADASTRAR ANIMAL</Text>
       </Pressable>
 
-      <Text style={styles.loginText}>login</Text>
+      <Text style={styles.loginText} onPress={onLoginPress}>
+        login
+      </Text>
       <Image
-        source={require('@/assets/images/meau_marca_2.png')}
+        source={require("@/assets/images/meau_marca_2.png")}
         style={styles.meauLogoImage}
       />
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-
   bgContainer: {
     flex: 1,
     alignItems: "center",
@@ -75,14 +71,14 @@ const styles = StyleSheet.create({
   titleText: {
     textAlign: "center",
     fontSize: 100,
-    color: "#FFD358"
+    color: "#FFD358",
   },
 
   bodyText: {
     textAlign: "center",
     margin: 20,
     fontSize: 20,
-    color: "#757575"
+    color: "#757575",
   },
 
   bodyButton: {
@@ -99,20 +95,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: 20,
     fontSize: 18,
-    color: "#757575"
+    color: "#757575",
   },
 
-  loginText:{
+  loginText: {
     textAlign: "center",
     margin: 20,
     fontSize: 20,
-    color: "#88C9BF"
+    color: "#88C9BF",
   },
 
-  meauLogoImage:{
+  meauLogoImage: {
     margin: 20,
     width: 154,
     height: 55,
-  }
-
-})
+  },
+});
