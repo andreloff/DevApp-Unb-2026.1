@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type Props = {
   label: string;
@@ -8,14 +8,31 @@ type Props = {
 export default function DrawerItem({label, onPress} : Props) {
 
   return (
-    <View>
+    <View
+      style={styles.container}
+    >
       <Pressable 
         onPress={onPress}
       >
-        <Text style={{ padding: 10 }}>
+        <Text style={styles.label}>
           {label}
         </Text>
       </Pressable>
     </View>    
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "#F7F7F7",
+    //flex: 1,
+  },
+
+  label: {
+    paddingLeft: 48,
+    paddingTop: 16,
+    paddingBottom: 20,
+    fontSize: 14,
+    fontFamily: "Roboto_400Regular",
+  },
+});
