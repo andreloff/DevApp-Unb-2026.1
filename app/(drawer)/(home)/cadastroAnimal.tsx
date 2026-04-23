@@ -1,6 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { DrawerActions } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import React, { useState } from "react";
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,11 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CadastroAnimal() {
+  const navigation = useNavigation();
   const [nome, setNome] = useState("");
-
   const [especie, setEspecie] = useState();
   const [sexo, setSexo] = useState();
   const [porte, setPorte] = useState();
@@ -23,9 +25,11 @@ export default function CadastroAnimal() {
   const [necessidades, setNecessidades] = useState<string[]>([]);
   const [medicamentos, setMedicamentos] = useState("");
   const [objetos, setObjetos] = useState("");
-  const [outros, setOutros] = useState("");
 
   const [sobre, setSobre] = useState("");
+  const onMenuPress = async () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
 
   //função pra deixar os botoes renderizados de forma correta
   const Selector = ({ label, options, currentEntry, setEntry }: any) => (
@@ -99,194 +103,199 @@ export default function CadastroAnimal() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <ScrollView style={styles.container}>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            Tem um pet para adoção? Preencha os campos abaixo para cadastrá-lo.
-          </Text>
-        </View>
+    <ScrollView style={styles.container}>
+      <Pressable style={styles.menuPressable} onPress={onMenuPress}>
+        <Ionicons name="menu-outline" size={32} color="#88C9BF" />
+      </Pressable>
+      <View style={styles.infoBox}>
+        <Text style={styles.infoText}>
+          Tem um pet para adoção? Preencha os campos abaixo para cadastrá-lo.
+        </Text>
+      </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>NOME DO ANIMAL</Text>
-          <TextInput
-            style={[styles.input, { opacity: nome.length > 0 ? 1 : 0.5 }]}
-            placeholder="Nome do animal"
-            //placeholderTextColor="#bdbdbd"
-            value={nome}
-            onChangeText={setNome}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>FOTOS DO ANIMAL</Text>
-          <TouchableOpacity style={styles.photoContainer}>
-            <Ionicons name="add-circle-outline" size={40} color="#757575" />
-            <Text style={styles.photoText}>adicionar fotos</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Seletores Dinâmicos */}
-        <Selector
-          label="ESPÉCIE"
-          options={["Cachorro", "Gato"]}
-          currentEntry={especie}
-          setEntry={setEspecie}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NOME DO ANIMAL</Text>
+        <TextInput
+          style={[styles.input, { opacity: nome.length > 0 ? 1 : 0.5 }]}
+          placeholder="Nome do animal"
+          //placeholderTextColor="#bdbdbd"
+          value={nome}
+          onChangeText={setNome}
         />
+      </View>
 
-        <Selector
-          label="SEXO"
-          options={["Macho", "Fêmea"]}
-          currentEntry={sexo}
-          setEntry={setSexo}
-        />
-
-        <Selector
-          label="PORTE"
-          options={["Pequeno", "Médio", "Grande"]}
-          currentEntry={porte}
-          setEntry={setPorte}
-        />
-
-        <Selector
-          label="IDADE"
-          options={["Filhote", "Adulto", "Idoso"]}
-          currentEntry={idade}
-          setEntry={setIdade}
-        />
-        <MultiSelector
-          label="TEMPERAMENTO"
-          options={[
-            "Brincalhão",
-            "Tímido",
-            "Calmo",
-            "Guarda",
-            "Amoroso",
-            "Preguiçoso",
-          ]}
-          currentSelection={temperamento}
-        />
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>SAÚDE</Text>
-          <View style={styles.radioGroup}>
-            {["Vermifugado", "Vacinado", "Castrado", "Doente"].map((item) => (
-              <TouchableOpacity
-                key={item}
-                onPress={() => toggleSaude(item)}
-                style={[
-                  styles.radioButton,
-                  saude.includes(item) && styles.radioButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.radioText,
-                    saude.includes(item) && styles.radioTextActive,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.detailsContainer}>
-            <TextInput
-              style={[styles.input, { opacity: doenca.length > 0 ? 1 : 0.5 }]}
-              placeholder="Doenças do animal"
-              value={doenca}
-              onChangeText={setDoenca}
-            />
-          </View>
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>NECESSIDADES DO ANIMAL</Text>
-          <View style={styles.radioGroupV}>
-            {["Alimento", "Auxílio financeiro", "Medicamento"].map((item) => (
-              <TouchableOpacity
-                key={item}
-                onPress={() => toggleNecessidade(item)}
-                style={[
-                  styles.radioButton,
-                  necessidades.includes(item) && styles.radioButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.radioText,
-                    necessidades.includes(item) && styles.radioTextActive,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.detailsContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                { opacity: medicamentos.length > 0 ? 1 : 0.5 },
-              ]}
-              placeholder="Nome do medicamento"
-              value={medicamentos}
-              onChangeText={setMedicamentos}
-            />
-          </View>
-          <View style={styles.radioGroup}>
-            {["Objetos"].map((item) => (
-              <TouchableOpacity
-                key={item}
-                onPress={() => toggleNecessidade(item)}
-                style={[
-                  styles.radioButton,
-                  necessidades.includes(item) && styles.radioButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.radioText,
-                    necessidades.includes(item) && styles.radioTextActive,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.detailsContainer}>
-            <TextInput
-              style={[styles.input, { opacity: objetos.length > 0 ? 1 : 0.5 }]}
-              placeholder="Especifique o(s) objeto(s)"
-              value={objetos}
-              onChangeText={setObjetos}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>SOBRE O ANIMAL</Text>
-          <TextInput
-            style={[styles.input, { opacity: sobre.length > 0 ? 1 : 0.5 }]}
-            placeholder="Compartilhe a história do animal"
-            //placeholderTextColor="#bdbdbd"
-            value={sobre}
-            onChangeText={setSobre}
-          />
-        </View>
-
-        <TouchableOpacity style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>COLOCAR PARA ADOÇÃO</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FOTOS DO ANIMAL</Text>
+        <TouchableOpacity style={styles.photoContainer}>
+          <Ionicons name="add-circle-outline" size={40} color="#757575" />
+          <Text style={styles.photoText}>adicionar fotos</Text>
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+
+      {/* Seletores Dinâmicos */}
+      <Selector
+        label="ESPÉCIE"
+        options={["Cachorro", "Gato"]}
+        currentEntry={especie}
+        setEntry={setEspecie}
+      />
+
+      <Selector
+        label="SEXO"
+        options={["Macho", "Fêmea"]}
+        currentEntry={sexo}
+        setEntry={setSexo}
+      />
+
+      <Selector
+        label="PORTE"
+        options={["Pequeno", "Médio", "Grande"]}
+        currentEntry={porte}
+        setEntry={setPorte}
+      />
+
+      <Selector
+        label="IDADE"
+        options={["Filhote", "Adulto", "Idoso"]}
+        currentEntry={idade}
+        setEntry={setIdade}
+      />
+      <MultiSelector
+        label="TEMPERAMENTO"
+        options={[
+          "Brincalhão",
+          "Tímido",
+          "Calmo",
+          "Guarda",
+          "Amoroso",
+          "Preguiçoso",
+        ]}
+        currentSelection={temperamento}
+      />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>SAÚDE</Text>
+        <View style={styles.radioGroup}>
+          {["Vermifugado", "Vacinado", "Castrado", "Doente"].map((item) => (
+            <TouchableOpacity
+              key={item}
+              onPress={() => toggleSaude(item)}
+              style={[
+                styles.radioButton,
+                saude.includes(item) && styles.radioButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.radioText,
+                  saude.includes(item) && styles.radioTextActive,
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.detailsContainer}>
+          <TextInput
+            editable={saude.includes("Doente")}
+            style={[styles.input, { opacity: doenca.length > 0 ? 1 : 0.5 }]}
+            placeholder="Doenças do animal"
+            value={doenca}
+            onChangeText={setDoenca}
+          />
+        </View>
+      </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NECESSIDADES DO ANIMAL</Text>
+        <View style={styles.radioGroupV}>
+          {["Alimento", "Auxílio financeiro", "Medicamento"].map((item) => (
+            <TouchableOpacity
+              key={item}
+              onPress={() => toggleNecessidade(item)}
+              style={[
+                styles.radioButton,
+                necessidades.includes(item) && styles.radioButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.radioText,
+                  necessidades.includes(item) && styles.radioTextActive,
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.detailsContainer}>
+          <TextInput
+            editable={necessidades.includes("Medicamento")}
+            style={[
+              styles.input,
+              { opacity: medicamentos.length > 0 ? 1 : 0.5 },
+            ]}
+            placeholder="Nome do medicamento"
+            value={medicamentos}
+            onChangeText={setMedicamentos}
+          />
+        </View>
+        <View style={styles.radioGroup}>
+          {["Objetos"].map((item) => (
+            <TouchableOpacity
+              key={item}
+              onPress={() => toggleNecessidade(item)}
+              style={[
+                styles.radioButton,
+                necessidades.includes(item) && styles.radioButtonActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.radioText,
+                  necessidades.includes(item) && styles.radioTextActive,
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.detailsContainer}>
+          <TextInput
+            editable={necessidades.includes("Objetos")}
+            style={[styles.input, { opacity: objetos.length > 0 ? 1 : 0.5 }]}
+            placeholder="Especifique o(s) objeto(s)"
+            value={objetos}
+            onChangeText={setObjetos}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>SOBRE O ANIMAL</Text>
+        <TextInput
+          style={[styles.input, { opacity: sobre.length > 0 ? 1 : 0.5 }]}
+          placeholder="Compartilhe a história do animal"
+          //placeholderTextColor="#bdbdbd"
+          value={sobre}
+          onChangeText={setSobre}
+        />
+      </View>
+
+      <TouchableOpacity style={styles.submitButton}>
+        <Text style={styles.submitButtonText}>COLOCAR PARA ADOÇÃO</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA" },
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#FAFAFA",
+  menuPressable: {
+    alignSelf: "flex-start",
+    paddingTop: 10,
+    paddingLeft: 14,
   },
   detailsContainer: {
     marginTop: 10,
@@ -351,7 +360,7 @@ const styles = StyleSheet.create({
   },
   radioTextActive: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    //fontWeight: "bold",
   },
 
   submitButton: {
