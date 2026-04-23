@@ -68,6 +68,15 @@ export default function LoginScreen() {
         </Pressable>
       </View>
 
+      <Pressable 
+        style={{ marginTop: 40, marginBottom: 20 }} 
+        onPress={() => router.push('/cadastro')}
+      >
+        <Text style={{ color: '#88c9bf', fontWeight: 'bold', fontSize: 16 }}>
+          Não tem conta? Cadastre-se
+        </Text>
+      </Pressable>
+
     </View>
   );
 }
