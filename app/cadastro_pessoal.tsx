@@ -43,7 +43,8 @@ export default function CadastroPessoal() {
       });
 
       Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
-      router.replace('/home'); 
+      
+      router.replace('/(drawer)/(home)'); 
     } catch (error: any) {
       Alert.alert('Erro no Cadastro', 'Verifique os dados ou se o e-mail já existe.');
     }
@@ -83,7 +84,6 @@ export default function CadastroPessoal() {
           <Text style={styles.photoText}>adicionar foto</Text>
         </TouchableOpacity>
 
-        {/* Adicionado o onPress para chamar a função */}
         <TouchableOpacity style={styles.btnFinalizar} onPress={realizarCadastro}>
           <Text style={styles.btnText}>FAZER CADASTRO</Text>
         </TouchableOpacity>

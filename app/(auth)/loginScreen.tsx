@@ -2,23 +2,31 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+
 
 export default function LoginScreen() {
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const { handleLogin } = useAuth();
+
+  const { handleLogin, handleRegister, error } = useAuth();
   const router = useRouter();
 
   const onLoginPress = async () => {
     const success = await handleLogin(email, password);
+
     if (success) {
+      console.log("Indo pra home...");
       router.replace('/(drawer)/(home)');
+    } else {
+      console.log("Login falhou");
     }
   };
 
   return (
     <View style={styles.bgContainer}>
+      
       <View style={styles.headerContainer}>
         <Pressable style={styles.menuPressable}>
           <Ionicons name="menu-outline" size={32} color="#757575"/>
@@ -42,7 +50,10 @@ export default function LoginScreen() {
         />
       </View>
       
-      <Pressable style={styles.bodyButton} onPress={onLoginPress}>
+      <Pressable 
+        style={styles.bodyButton}
+        onPress={onLoginPress}
+      >
         <Text style={styles.buttonText}>ENTRAR</Text>
       </Pressable>
 
@@ -57,12 +68,122 @@ export default function LoginScreen() {
         </Pressable>
       </View>
 
-      {/* Adicionado apenas este bloco para o link funcionar */}
-      <Pressable style={{ marginTop: 30 }} onPress={() => router.push('/cadastro')}>
-        <Text style={{ color: '#88c9bf', fontWeight: 'bold' }}>Não tem conta? Cadastre-se</Text>
+      <Pressable 
+        style={{ marginTop: 40, marginBottom: 20 }} 
+        onPress={() => router.push('/cadastro')}
+      >
+        <Text style={{ color: '#88c9bf', fontWeight: 'bold', fontSize: 16 }}>
+          Não tem conta? Cadastre-se
+        </Text>
       </Pressable>
+
     </View>
   );
 }
 
-// ... mantenha seus estilos (styles, inputFieldStyles, socialMediaStyles) exatamente como estão abaixo
+const styles = StyleSheet.create({
+
+  bgContainer: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#FAFAFA",
+  },
+
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#CFE9E5",
+    width: "100%",
+    height: 60,
+  },
+
+  menuPressable: {
+    paddingTop: 14,
+    paddingLeft: 14,
+    width: 40,
+    height: 40,
+  },
+
+  titleText: {
+    paddingTop: 14,
+    paddingLeft: 40,
+    fontSize: 24,
+    color: "#000000"
+  },
+
+  bodyButton: {
+    width: 300,
+    height: 60,
+    borderRadius: 5,
+    margin: 40,
+    alignItems: "center",
+    backgroundColor: "#88C9BF",
+    elevation: 4,
+  },
+
+  buttonText: {
+    textAlign: "center",
+    margin: 20,
+    fontSize: 18,
+    color: "#343434"
+  },
+
+})
+
+const inputFieldStyles = StyleSheet.create({
+
+  inputFieldContainer: {
+    alignItems: "center",
+    width: "100%",
+    paddingTop: 40,
+  },
+
+  inputText:{
+    width: 340,
+    height: 60,
+    padding: 14,
+    elevation: 1,
+  },
+
+})
+
+const socialMediaStyles = StyleSheet.create({
+
+  socialLoginContainer: {
+    alignItems: "center",
+    width: "100%",
+    paddingTop: 60,
+  },
+
+  facebookLoginButton: {
+    flexDirection: "row",
+    width: 300,
+    height: 60,
+    borderRadius: 5,
+    paddingLeft: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0a1c61",
+    elevation: 4,
+  },
+
+  googleLoginButton: {
+    flexDirection: "row",
+    width: 300,
+    height: 60,
+    borderRadius: 5,
+    justifyContent: "center",
+    margin: 8,
+    alignItems: "center",
+    backgroundColor: "#ad2f2f",
+    elevation: 4,
+  },
+
+  socialButtonText: {
+    textAlign: "center",
+    margin: 20,
+    fontSize: 16,
+    color: "#FAFAFA"
+  },
+
+})
