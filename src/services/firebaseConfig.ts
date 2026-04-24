@@ -1,14 +1,19 @@
-import { FirebaseApp, initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: "meau-app-unb20261-andre.firebaseapp.com",
-  projectId: "meau-app-unb20261-andre",
-  storageBucket: "meau-app-unb20261-andre.firebasestorage.app",
-  messagingSenderId: "756135788781",
-  appId: "1:756135788781:web:c1489dec43ef3717738ce4"
+  apiKey: "AIzaSyAoiwL9DvNuw-WByMV464vkenOmru5vTDo",
+  authDomain: "meau-unb-627d0.firebaseapp.com",
+  projectId: "meau-unb-627d0",
+  storageBucket: "meau-unb-627d0.firebasestorage.app",
+  messagingSenderId: "803701688987",
+  appId: "1:803701688987:web:a3589cdadcf27df44f143e"
 };
 
-const app: FirebaseApp = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 export default app;

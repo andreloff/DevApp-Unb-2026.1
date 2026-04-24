@@ -1,43 +1,114 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function OpsScreen() {
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+
+export default function Cadastro() { // <-- Mudei o nome para Cadastro para ficar organizado
   const router = useRouter();
 
+  const onBackArrowPress = async () => {
+    router.back();
+  };
+  
+  const onLoginPress = async () => {
+    router.push("/loginScreen"); // Manda para o Login
+  };
+
+  // <-- ADICIONADO: Função para ir para a tela de formulário que você criou
+  const onCadastroPress = async () => {
+    router.push("/cadastro_pessoal"); 
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <MaterialIcons name="arrow-back" size={24} color="#434343" style={{marginRight: 16}} />
+    <View style={styles.bgContainer}>
+      <View style={styles.headerContainer}>
+        <Pressable style={styles.menuPressable} onPress={onBackArrowPress}>
+          <Ionicons name="arrow-back-outline" size={32} color="#757575" />
+        </Pressable>
         <Text style={styles.headerText}>Cadastro</Text>
       </View>
-      <View style={styles.content}>
-        <Text style={styles.ops}>Ops!</Text>
-        <Text style={styles.message}>Você não pode realizar esta ação sem possuir um cadastro.</Text>
-        
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/cadastro_pessoal')}>
-          <Text style={styles.buttonText}>FAZER CADASTRO</Text>
-        </TouchableOpacity>
 
-        <Text style={styles.smallText}>Já possui cadastro?</Text>
-        
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/')}>
-          <Text style={styles.buttonText}>FAZER LOGIN</Text>
-        </TouchableOpacity>
+      <Text style={styles.titleText}>Ops!</Text>
+
+      <View style={bodyStyles.bodyContainer}>
+        <Text style={styles.buttonText}>
+          Você não pode realizar esta ação sem possuir um cadastro.
+        </Text>
+        {/* <-- ADICIONADO: O onPress ligando ao seu cadastro_pessoal */}
+        <Pressable style={styles.bodyButton} onPress={onCadastroPress}>
+          <Text style={styles.buttonText}>FAZER CADASTRO</Text>
+        </Pressable>
       </View>
-      <StatusBar barStyle="dark-content" backgroundColor="#88c9bf" />
+
+      <View style={bodyStyles.bodyContainer}>
+        <Text style={styles.buttonText}>Já possui cadastro?</Text>
+        <Pressable style={styles.bodyButton} onPress={onLoginPress}>
+          <Text style={styles.buttonText}>FAZER LOGIN</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fafafa' },
-  header: { backgroundColor: '#88c9bf', height: 60, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
-  headerText: { color: '#434343', fontSize: 20, fontWeight: '500' },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  ops: { fontSize: 53, color: '#88c9bf', marginBottom: 50, fontFamily: 'Courgette-Regular' },
-  message: { color: '#757575', fontSize: 14, textAlign: 'center', marginBottom: 50 },
-  button: { backgroundColor: '#88c9bf', width: 232, height: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 10, elevation: 1 },
-  buttonText: { color: '#434343', fontSize: 12, fontWeight: 'bold' },
-  smallText: { color: '#757575', fontSize: 12, marginTop: 40, marginBottom: 10 }
+  bgContainer: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#FAFAFA",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#CFE9E5",
+    width: "100%",
+    height: 60,
+  },
+  menuPressable: {
+    paddingTop: 14,
+    paddingLeft: 14,
+    width: 40,
+    height: 40,
+  },
+  headerText: {
+    paddingTop: 14,
+    paddingLeft: 40,
+    fontSize: 24,
+    color: "#333333",
+    fontWeight: "bold",
+  },
+  titleText: {
+    paddingTop: 40,
+    textAlign: "center",
+    fontSize: 60,
+    color: "#88C9BF",
+    fontFamily: "Courgette_400Regular",
+  },
+  bodyButton: {
+    width: 300,
+    height: 60,
+    borderRadius: 5,
+    alignItems: "center",
+    backgroundColor: "#88C9BF",
+    elevation: 4,
+  },
+  buttonText: {
+    textAlign: "center",
+    margin: 20,
+    fontSize: 18,
+    color: "#343434",
+  },
+});
+
+const bodyStyles = StyleSheet.create({
+  bodyContainer: {
+    alignItems: "center",
+    width: "100%",
+    paddingTop: 30,
+  },
+  inputText: {
+    width: 340,
+    height: 60,
+    padding: 14,
+    elevation: 1,
+  },
 });
