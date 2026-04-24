@@ -16,7 +16,7 @@ import {
 
 import * as ImagePicker from 'expo-image-picker';
 import { addDoc, arrayUnion, collection, doc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../../../src/services/firebaseConfig"; // Removido uploadImage
+import { auth, db } from "../../../src/services/firebaseConfig";
 
 export default function CadastroAnimal() {
   const navigation = useNavigation();
@@ -41,7 +41,6 @@ export default function CadastroAnimal() {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
-  // Ajustado para converter foto do animal em Base64
   const pickImage = async (useCamera: boolean) => {
     const result = useCamera 
       ? await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.3, base64: true })
@@ -60,7 +59,6 @@ export default function CadastroAnimal() {
     }
 
     try {
-      // Salva o animal direto com a string da imagem (fotoUrl) no Firestore
       const docRef = await addDoc(collection(db, "animais"), {
         nome, 
         especie, 
@@ -75,11 +73,10 @@ export default function CadastroAnimal() {
         objetos, 
         sobre,
         usuarioId: user.uid,
-        fotoUrl: image || "", // Base64 salvo aqui
+        fotoUrl: image || "", 
         dataCadastro: new Date().toISOString()
       });
 
-      // Atualiza a lista de animais no perfil do usuário
       const userRef = doc(db, "usuarios", user.uid);
       await updateDoc(userRef, {
         animais: arrayUnion(docRef.id)
@@ -294,7 +291,6 @@ export default function CadastroAnimal() {
   );
 }
 
-// ... Estilos permanecem os mesmos ...
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA" },
   menuPressable: { alignSelf: "flex-start", paddingTop: 10, paddingLeft: 14 },

@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function Cadastro() { // <-- Mudei o nome para Cadastro para ficar organizado
+export default function Cadastro() { 
   const router = useRouter();
 
   const onBackArrowPress = async () => {
@@ -11,10 +11,9 @@ export default function Cadastro() { // <-- Mudei o nome para Cadastro para fica
   };
   
   const onLoginPress = async () => {
-    router.push("/loginScreen"); // Manda para o Login
+    router.push("/loginScreen"); 
   };
 
-  // <-- ADICIONADO: Função para ir para a tela de formulário que você criou
   const onCadastroPress = async () => {
     router.push("/cadastro_pessoal"); 
   };
@@ -34,7 +33,6 @@ export default function Cadastro() { // <-- Mudei o nome para Cadastro para fica
         <Text style={styles.buttonText}>
           Você não pode realizar esta ação sem possuir um cadastro.
         </Text>
-        {/* <-- ADICIONADO: O onPress ligando ao seu cadastro_pessoal */}
         <Pressable style={styles.bodyButton} onPress={onCadastroPress}>
           <Text style={styles.buttonText}>FAZER CADASTRO</Text>
         </Pressable>

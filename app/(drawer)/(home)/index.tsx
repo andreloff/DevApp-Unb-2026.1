@@ -1,4 +1,4 @@
-import { useAuth } from "@/src/hooks/useAuth"; // 1. Importação necessária para checar o login
+import { useAuth } from "@/src/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -8,14 +8,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const { user } = useAuth(); // 2. Puxa o estado atual do usuário (logado ou não)
+  const { user } = useAuth(); 
 
-  // 3. Função para decidir se vai para a tela de 'Ops!' ou para a função do app
   const handleProtectedAction = (route: string) => {
     if (user) {
       router.push(route);
     } else {
-      router.push("/cadastro"); // Manda para a tela de "Ops!" (app/cadastro.tsx)
+      router.push("/cadastro");
     }
   };
 

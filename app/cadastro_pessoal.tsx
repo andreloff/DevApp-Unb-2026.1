@@ -22,7 +22,6 @@ export default function CadastroPessoal() {
   const [confirmaSenha, setConfirmaSenha] = useState('');
   const [image, setImage] = useState<string | null>(null);
 
-  // Configuração para pegar imagem e converter para Base64
   const pickImage = async (useCamera: boolean) => {
     const result = useCamera 
       ? await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.3, base64: true })
@@ -48,7 +47,6 @@ export default function CadastroPessoal() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
 
-      // Salva os dados no Firestore (fotoUrl recebe a string Base64)
       await setDoc(doc(db, "usuarios", user.uid), {
         nome_completo: nome,
         idade: idade,
@@ -82,7 +80,6 @@ export default function CadastroPessoal() {
     }
   };
 
-  // Regras de validação para os checks verdes
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isSenhaValid = senha.length >= 6;
   const isConfirmaSenhaValid = confirmaSenha.length >= 6 && confirmaSenha === senha;
@@ -148,7 +145,6 @@ export default function CadastroPessoal() {
   );
 }
 
-// --- COMPONENTE MOVIDO PARA FORA PARA EVITAR PERDA DE FOCO DO TECLADO ---
 const InputField = ({ placeholder, value, onChangeText, secureTextEntry, keyboardType, isValid }: any) => (
   <View style={styles.inputContainer}>
     <TextInput 
