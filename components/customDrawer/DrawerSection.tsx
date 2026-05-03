@@ -12,6 +12,7 @@ type Props = {
   children: React.ReactNode;
   containerStyle?: object;
   titleStyle?: object;
+  defaultOpen?: boolean;
 };
 
 export default function DrawerSection({
@@ -20,8 +21,9 @@ export default function DrawerSection({
   children,
   containerStyle,
   titleStyle,
+  defaultOpen = false,
 }: Props) {
-  const [isOpen, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(defaultOpen);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -30,7 +32,7 @@ export default function DrawerSection({
           <Ionicons
             name={icon.name}
             size={24}
-            color={"#434343"}
+            color="#757575"
             style={styles.icon}
           />
         )}
@@ -44,36 +46,45 @@ export default function DrawerSection({
         />
       </Pressable>
 
-      {isOpen && <View style={{ paddingLeft: 0 }}>{children}</View>}
+      {isOpen && <View style={styles.childrenContainer}>{children}</View>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 15,
-    paddingHorizontal: 0,
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E6E7E8",
   },
 
   title: {
     color: "#434343",
     paddingLeft: 16,
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Roboto_500Medium",
+    flex: 1,
   },
 
   pressable: {
     flexDirection: "row",
     alignItems: "center",
+    height: 48,
     width: "100%",
+    paddingRight: 16,
   },
 
   icon: {
-    paddingLeft: 16,
+    marginLeft: 16,
+    marginRight: 12,
   },
 
   finalIcon: {
-    marginLeft: "auto",
-    marginRight: 16,
+    marginRight: 0,
+  },
+
+  childrenContainer: {
+    width: "100%",
+    backgroundColor: "#FFFFFF",
   },
 });
