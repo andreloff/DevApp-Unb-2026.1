@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,7 +20,8 @@ interface Animal {
   sexo: string;
   porte: string;
   idade: string;
-  localizacao: string;
+  usuarioId?: string;
+  localizacao?: string;
   fotoUrl: string;
 }
 
@@ -39,11 +40,35 @@ export default function Adotar() {
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs: Animal[] = [];
-      querySnapshot.forEach((doc) => {
-        docs.push({ id: doc.id, ...doc.data() } as Animal);
+      querySnapshot.forEach((docSnap) => {
+        docs.push({ id: docSnap.id, ...docSnap.data() } as Animal);
       });
-      setAnimais(docs);
-      setLoading(false);
+
+      const loadLocations = async () => {
+        await Promise.all(
+          docs.map(async (item) => {
+            if (!item.localizacao && item.usuarioId) {
+              const userSnap = await getDoc(
+                doc(db, "usuarios", item.usuarioId),
+              );
+              if (userSnap.exists()) {
+                const userData = userSnap.data() as any;
+                const cidade = userData.cidade || "";
+                const estado = userData.estado || "";
+                item.localizacao =
+                  cidade && estado
+                    ? `${cidade} - ${estado}`
+                    : cidade || estado || "";
+              }
+            }
+          }),
+        );
+
+        setAnimais(docs);
+        setLoading(false);
+      };
+
+      loadLocations();
     });
 
     return () => unsubscribe();

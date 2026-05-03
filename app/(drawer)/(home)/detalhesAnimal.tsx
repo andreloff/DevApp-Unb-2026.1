@@ -17,6 +17,7 @@ export default function DetalhesAnimal() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [animal, setAnimal] = useState<any>(null);
+  const [ownerLocation, setOwnerLocation] = useState("");
   const [loading, setLoading] = useState(true);
 
   const handleBack = () => {
@@ -30,12 +31,57 @@ export default function DetalhesAnimal() {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setAnimal(docSnap.data());
+        const animalData = docSnap.data();
+        setAnimal(animalData);
+
+        if (animalData.usuarioId) {
+          const userSnap = await getDoc(
+            doc(db, "usuarios", animalData.usuarioId),
+          );
+          if (userSnap.exists()) {
+            const userData = userSnap.data() as any;
+            const cidade = userData.cidade || "";
+            const estado = userData.estado || "";
+            setOwnerLocation(
+              cidade && estado
+                ? `${cidade} - ${estado}`
+                : cidade || estado || "",
+            );
+          }
+        }
       }
       setLoading(false);
     }
     fetchAnimal();
   }, [id]);
+
+  const formatNecessidades = () => {
+    const necessidadesArray = Array.isArray(animal?.necessidades)
+      ? animal.necessidades
+      : animal?.necessidades
+        ? [animal.necessidades]
+        : [];
+
+    if (necessidadesArray.length === 0) {
+      return "Nenhuma";
+    }
+
+    const items = necessidadesArray.map((item: string) => {
+      if (item === "Medicamento" && animal?.medicamentos) {
+        return `Medicamento (${animal.medicamentos})`;
+      }
+      if (item === "Objetos" && animal?.objetos) {
+        return `Objetos (${animal.objetos})`;
+      }
+      return item;
+    });
+
+    if (items.length === 1) {
+      return items[0];
+    }
+
+    return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+  };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
   if (!animal) return <Text>Animal não encontrado.</Text>;
@@ -84,7 +130,9 @@ export default function DetalhesAnimal() {
         </View>
 
         <Text style={styles.label}>LOCALIZAÇÃO</Text>
-        <Text style={styles.value}>{animal.localizacao}</Text>
+        <Text style={styles.value}>
+          {ownerLocation || animal.localizacao || ""}
+        </Text>
 
         <View style={styles.divider} />
 
@@ -100,9 +148,34 @@ export default function DetalhesAnimal() {
             </Text>
           </View>
         </View>
+        <View style={styles.infoGrid}>
+          <View>
+            <Text style={styles.label}>VACINADO</Text>
+            <Text style={styles.value}>{animal.vacinado ? "Sim" : "Não"}</Text>
+          </View>
+          <View>
+            <Text style={styles.label}>DOENÇAS</Text>
+            <Text style={styles.value}>
+              {animal.doenca ? animal.doenca : "Nenhuma"}
+            </Text>
+          </View>
+        </View>
 
         <Text style={styles.label}>TEMPERAMENTO</Text>
-        <Text style={styles.value}>{animal.temperamento}</Text>
+        <Text style={styles.value}>
+          {Array.isArray(animal.temperamento)
+            ? animal.temperamento.length === 0
+              ? ""
+              : animal.temperamento.length === 1
+                ? animal.temperamento[0]
+                : animal.temperamento.slice(0, -1).join(", ") +
+                  " e " +
+                  animal.temperamento.slice(-1)
+            : animal.temperamento || ""}
+        </Text>
+
+        <Text style={styles.label}>NECESSIDADES</Text>
+        <Text style={styles.value}>{formatNecessidades()}</Text>
 
         <Text style={styles.label}>
           MAIS SOBRE {animal.nome?.toUpperCase()}
