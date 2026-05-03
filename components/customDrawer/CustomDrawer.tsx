@@ -1,21 +1,68 @@
 import { DrawerContentScrollView } from "@react-navigation/drawer";
+import { useRouter } from "expo-router";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
+import { auth, db } from "../../src/services/firebaseConfig";
 import DrawerFooter from "./DrawerFooter";
 import DrawerHeader from "./DrawerHeader";
 import DrawerItem from "./DrawerItem";
 import DrawerSection from "./DrawerSection";
 
 export default function CustomDrawer(props: any) {
+  const [userName, setUserName] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setUserName(null);
+        return;
+      }
+
+      try {
+        const userSnap = await getDoc(doc(db, "usuarios", user.uid));
+        if (userSnap.exists()) {
+          const data = userSnap.data() as any;
+          setUserName(
+            data.nome_usuario || data.nome_completo || user.email || "Usuário",
+          );
+        } else {
+          setUserName(user.email || "Usuário");
+        }
+      } catch {
+        setUserName(user.email || "Usuário");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleCadastroPet = () => {
+    if (auth.currentUser) {
+      props.navigation.navigate("(home)", { screen: "cadastroAnimal" });
+    } else {
+      router.push("/loginScreen");
+    }
+  };
+
+  const handleHeaderPress = () => {
+    if (!auth.currentUser) {
+      router.push("/loginScreen");
+    }
+  };
+
   return (
     <DrawerContentScrollView
       {...props}
       contentContainerStyle={styles.drawerContent}
       style={styles.drawerScroll}
     >
-      <DrawerHeader />
+      <DrawerHeader name={userName} onPress={handleHeaderPress} />
 
       <DrawerSection
-        title="NOME_USUARIO"
+        title={userName || "Fazer login"}
         containerStyle={styles.userSectionContainer}
       >
         <DrawerItem
@@ -41,12 +88,7 @@ export default function CustomDrawer(props: any) {
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
-        <DrawerItem
-          label="Cadastrar um pet"
-          onPress={() =>
-            props.navigation.navigate("(home)", { screen: "cadastroAnimal" })
-          }
-        />
+        <DrawerItem label="Cadastrar um pet" onPress={handleCadastroPet} />
         <DrawerItem
           label="Adotar um pet"
           onPress={() =>

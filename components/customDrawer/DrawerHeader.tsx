@@ -1,10 +1,20 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function DrawerHeader() {
+type DrawerHeaderProps = {
+  name?: string | null;
+  onPress?: () => void;
+};
+
+export default function DrawerHeader({ name, onPress }: DrawerHeaderProps) {
   return (
-    <View style={styles.container}>
-      <View style={styles.avatar}/>
-    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onPress}
+      style={styles.container}
+    >
+      <View style={styles.avatar} />
+      <Text style={styles.nameText}>{name || "Fazer login"}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -25,5 +35,12 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     marginBottom: 12,
     backgroundColor: "#4F46E5",
+  },
+
+  nameText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginLeft: 16,
   },
 });

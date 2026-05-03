@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type IconProps = {
   name: keyof typeof Ionicons.glyphMap;
@@ -12,45 +12,40 @@ type Props = {
   children: React.ReactNode;
   containerStyle?: object;
   titleStyle?: object;
-}
+};
 
-export default function DrawerSection({icon, title, children, containerStyle, titleStyle} : Props) {
+export default function DrawerSection({
+  icon,
+  title,
+  children,
+  containerStyle,
+  titleStyle,
+}: Props) {
   const [isOpen, setOpen] = useState(false);
 
   return (
     <View style={[styles.container, containerStyle]}>
-
-      <Pressable 
-        style={styles.pressable}
-        onPress={() => setOpen(!isOpen)}
-      >
-        {icon && 
+      <Pressable style={styles.pressable} onPress={() => setOpen(!isOpen)}>
+        {icon && (
           <Ionicons
             name={icon.name}
             size={24}
             color={"#434343"}
             style={styles.icon}
-          />  
-        }
+          />
+        )}
 
-        <Text style={[styles.title, titleStyle]}>
-          {title}
-        </Text>
-        <Ionicons 
-          name= {isOpen ? "caret-up-outline" : "caret-down-outline"} 
-          size={24} 
+        <Text style={[styles.title, titleStyle]}>{title}</Text>
+        <Ionicons
+          name={isOpen ? "caret-up-outline" : "caret-down-outline"}
+          size={24}
           color="#757575"
           style={styles.finalIcon}
         />
       </Pressable>
 
-      {isOpen && 
-        <View style={{ paddingLeft: 0 }}>
-          {children}
-        </View>
-      }
-
-    </View>    
+      {isOpen && <View style={{ paddingLeft: 0 }}>{children}</View>}
+    </View>
   );
 }
 
@@ -80,6 +75,5 @@ const styles = StyleSheet.create({
   finalIcon: {
     marginLeft: "auto",
     marginRight: 16,
-  }
-
+  },
 });

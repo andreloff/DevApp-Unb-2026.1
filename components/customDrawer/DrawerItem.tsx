@@ -1,24 +1,17 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   label: string;
   onPress: () => void;
-}
+};
 
-export default function DrawerItem({label, onPress} : Props) {
-
+export default function DrawerItem({ label, onPress }: Props) {
   return (
-    <View
-      style={styles.container}
-    >
-      <Pressable 
-        onPress={onPress}
-      >
-        <Text style={styles.label}>
-          {label}
-        </Text>
+    <View style={styles.container}>
+      <Pressable onPress={onPress}>
+        <Text style={styles.label}>{label}</Text>
       </Pressable>
-    </View>    
+    </View>
   );
 }
 
