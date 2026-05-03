@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const { handleLogin, handleRegister, error } = useAuth();
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function LoginScreen() {
 
     if (success) {
       console.log("Indo pra home...");
-      router.replace("/(drawer)/(home)");
+      router.replace("/(drawer)/(home)/adotar");
     } else {
       console.log("Login falhou");
     }
@@ -38,13 +39,25 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
         />
-        <TextInput
-          style={inputFieldStyles.inputText}
-          placeholder="Senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={inputFieldStyles.passwordFieldContainer}>
+          <TextInput
+            style={inputFieldStyles.passwordInput}
+            placeholder="Senha"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <Pressable
+            style={inputFieldStyles.passwordToggle}
+            onPress={() => setShowPassword((prev) => !prev)}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={24}
+              color="#757575"
+            />
+          </Pressable>
+        </View>
       </View>
 
       <Pressable style={styles.bodyButton} onPress={onLoginPress}>
@@ -135,8 +148,35 @@ const inputFieldStyles = StyleSheet.create({
   inputText: {
     width: 340,
     height: 60,
-    padding: 14,
+    paddingLeft: 14,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 5,
     elevation: 1,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+
+  passwordFieldContainer: {
+    width: 340,
+    height: 60,
+    borderRadius: 5,
+    backgroundColor: "#FFFFFF",
+    elevation: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+  },
+
+  passwordInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 16,
+  },
+
+  passwordToggle: {
+    padding: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
