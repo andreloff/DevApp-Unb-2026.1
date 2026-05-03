@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,8 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// Importe a instância do firestore do seu arquivo de configuração
-import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../../../src/services/firebaseConfig";
 
 interface Animal {
@@ -28,11 +28,15 @@ export default function Adotar() {
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const navigation = useNavigation();
+
+  const onMenuPress = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
 
   useEffect(() => {
     const q = query(collection(db, "animais"));
 
-    // onSnapshot permite atualização em tempo real
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs: Animal[] = [];
       querySnapshot.forEach((doc) => {
@@ -86,6 +90,15 @@ export default function Adotar() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerButton} onPress={onMenuPress}>
+          <Ionicons name="menu-outline" size={24} color="#434343" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Adotar</Text>
+        <TouchableOpacity style={styles.headerButton}>
+          <Ionicons name="search-outline" size={24} color="#434343" />
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={animais}
         renderItem={renderItem}
@@ -97,6 +110,23 @@ export default function Adotar() {
 }
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fafafa" },
+  header: {
+    height: 56,
+    backgroundColor: "#ffd358",
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerTitle: {
+    color: "#434343",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  headerButton: {
+    padding: 8,
+  },
   listPadding: { padding: 8 },
   card: {
     backgroundColor: "#fff",
@@ -110,7 +140,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 8,
-    backgroundColor: "#fee21b", // Cor do retângulo do título[cite: 2]
+    backgroundColor: "#fee29b", // Cor do retângulo do título[cite: 2]
   },
   cardTitle: { fontSize: 16, color: "#434343", fontFamily: "Roboto_500Medium" },
   animalImage: { width: 344, height: 183 },

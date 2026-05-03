@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
@@ -15,8 +15,13 @@ import { db } from "../../../src/services/firebaseConfig";
 
 export default function DetalhesAnimal() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const [animal, setAnimal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleBack = () => {
+    router.back();
+  };
 
   useEffect(() => {
     async function fetchAnimal() {
@@ -37,6 +42,15 @@ export default function DetalhesAnimal() {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
+          <Ionicons name="chevron-back" size={24} color="#434343" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{animal.nome || "Detalhes"}</Text>
+        <TouchableOpacity style={styles.headerButton}>
+          <Ionicons name="share-social" size={24} color="#434343" />
+        </TouchableOpacity>
+      </View>
       <Image
         source={{
           uri: animal.fotoUrl?.startsWith("data:image")
@@ -47,7 +61,7 @@ export default function DetalhesAnimal() {
       />
 
       <View style={styles.content}>
-        <View style={styles.header}>
+        <View style={styles.detailsHeader}>
           <Text style={styles.name}>{animal.nome}</Text>
           <TouchableOpacity style={styles.fab}>
             <Ionicons name="heart-outline" size={28} color="#434343" />
@@ -104,9 +118,26 @@ export default function DetalhesAnimal() {
 }
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fafafa" },
+  header: {
+    height: 56,
+    backgroundColor: "#fee29b",
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerTitle: {
+    color: "#434343",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  headerButton: {
+    padding: 8,
+  },
   banner: { width: "100%", height: 184 },
   content: { padding: 16 },
-  header: {
+  detailsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 16,
