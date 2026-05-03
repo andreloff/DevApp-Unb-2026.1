@@ -1,5 +1,5 @@
 import { DrawerContentScrollView } from "@react-navigation/drawer";
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 import DrawerFooter from "./DrawerFooter";
 import DrawerHeader from "./DrawerHeader";
 import DrawerItem from "./DrawerItem";
@@ -7,15 +7,14 @@ import DrawerSection from "./DrawerSection";
 
 export default function CustomDrawer(props: any) {
   return (
-    <DrawerContentScrollView 
+    <DrawerContentScrollView
       {...props}
       contentContainerStyle={styles.drawerContent}
       style={styles.drawerScroll}
     >
-    
       <DrawerHeader />
 
-      <DrawerSection 
+      <DrawerSection
         title="NOME_USUARIO"
         containerStyle={styles.userSectionContainer}
       >
@@ -37,8 +36,8 @@ export default function CustomDrawer(props: any) {
         />
       </DrawerSection>
 
-      <DrawerSection 
-        icon={{name:"bug-outline"}}
+      <DrawerSection
+        icon={{ name: "bug-outline" }}
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
@@ -50,7 +49,9 @@ export default function CustomDrawer(props: any) {
         />
         <DrawerItem
           label="Adotar um pet"
-          onPress={() => props.navigation.navigate("(profile)")}
+          onPress={() =>
+            props.navigation.navigate("(home)", { screen: "adotar" })
+          }
         />
         <DrawerItem
           label="Ajudar um pet"
@@ -62,8 +63,8 @@ export default function CustomDrawer(props: any) {
         />
       </DrawerSection>
 
-      <DrawerSection 
-        icon={{name:"information-circle-outline"}}
+      <DrawerSection
+        icon={{ name: "information-circle-outline" }}
         title="Informações"
         containerStyle={styles.infoSectionContainer}
       >
@@ -89,8 +90,8 @@ export default function CustomDrawer(props: any) {
         />
       </DrawerSection>
 
-      <DrawerSection 
-        icon={{name:"settings-outline"}}
+      <DrawerSection
+        icon={{ name: "settings-outline" }}
         title="Configurações"
         containerStyle={styles.configSectionContainer}
       >
@@ -100,14 +101,12 @@ export default function CustomDrawer(props: any) {
         />
       </DrawerSection>
 
-      <DrawerFooter/>
-      
+      <DrawerFooter />
     </DrawerContentScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-
   drawerContent: {
     flex: 1,
     padding: 0,
