@@ -1,0 +1,250 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { db } from "../../../src/services/firebaseConfig";
+
+export default function DetalhesAnimal() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const [animal, setAnimal] = useState<any>(null);
+  const [ownerLocation, setOwnerLocation] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  useEffect(() => {
+    async function fetchAnimal() {
+      if (!id) return;
+      const docRef = doc(db, "animais", id as string);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const animalData = docSnap.data();
+        setAnimal(animalData);
+
+        if (animalData.usuarioId) {
+          const userSnap = await getDoc(
+            doc(db, "usuarios", animalData.usuarioId),
+          );
+          if (userSnap.exists()) {
+            const userData = userSnap.data() as any;
+            const cidade = userData.cidade || "";
+            const estado = userData.estado || "";
+            setOwnerLocation(
+              cidade && estado
+                ? `${cidade} - ${estado}`
+                : cidade || estado || "",
+            );
+          }
+        }
+      }
+      setLoading(false);
+    }
+    fetchAnimal();
+  }, [id]);
+
+  const formatNecessidades = () => {
+    const necessidadesArray = Array.isArray(animal?.necessidades)
+      ? animal.necessidades
+      : animal?.necessidades
+        ? [animal.necessidades]
+        : [];
+
+    if (necessidadesArray.length === 0) {
+      return "Nenhuma";
+    }
+
+    const items = necessidadesArray.map((item: string) => {
+      if (item === "Medicamento" && animal?.medicamentos) {
+        return `Medicamento (${animal.medicamentos})`;
+      }
+      if (item === "Objetos" && animal?.objetos) {
+        return `Objetos (${animal.objetos})`;
+      }
+      return item;
+    });
+
+    if (items.length === 1) {
+      return items[0];
+    }
+
+    return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+  };
+
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (!animal) return <Text>Animal não encontrado.</Text>;
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
+          <Ionicons name="chevron-back" size={24} color="#434343" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{animal.nome || "Detalhes"}</Text>
+        <TouchableOpacity style={styles.headerButton}>
+          <Ionicons name="share-social" size={24} color="#434343" />
+        </TouchableOpacity>
+      </View>
+      <Image
+        source={{
+          uri: animal.fotoUrl?.startsWith("data:image")
+            ? animal.fotoUrl
+            : `data:image/jpeg;base64,${animal.fotoUrl}`,
+        }}
+        style={styles.banner}
+      />
+
+      <View style={styles.content}>
+        <View style={styles.detailsHeader}>
+          <Text style={styles.name}>{animal.nome}</Text>
+          <TouchableOpacity style={styles.fab}>
+            <Ionicons name="heart-outline" size={28} color="#434343" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.infoGrid}>
+          <View>
+            <Text style={styles.label}>SEXO</Text>
+            <Text style={styles.value}>{animal.sexo}</Text>
+          </View>
+          <View>
+            <Text style={styles.label}>PORTE</Text>
+            <Text style={styles.value}>{animal.porte}</Text>
+          </View>
+          <View>
+            <Text style={styles.label}>IDADE</Text>
+            <Text style={styles.value}>{animal.idade}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.label}>LOCALIZAÇÃO</Text>
+        <Text style={styles.value}>
+          {ownerLocation || animal.localizacao || ""}
+        </Text>
+
+        <View style={styles.divider} />
+
+        <View style={styles.infoGrid}>
+          <View>
+            <Text style={styles.label}>CASTRADO</Text>
+            <Text style={styles.value}>{animal.castrado ? "Sim" : "Não"}</Text>
+          </View>
+          <View>
+            <Text style={styles.label}>VERMIFUGADO</Text>
+            <Text style={styles.value}>
+              {animal.vermifugado ? "Sim" : "Não"}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.infoGrid}>
+          <View>
+            <Text style={styles.label}>VACINADO</Text>
+            <Text style={styles.value}>{animal.vacinado ? "Sim" : "Não"}</Text>
+          </View>
+          <View>
+            <Text style={styles.label}>DOENÇAS</Text>
+            <Text style={styles.value}>
+              {animal.doenca ? animal.doenca : "Nenhuma"}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.label}>TEMPERAMENTO</Text>
+        <Text style={styles.value}>
+          {Array.isArray(animal.temperamento)
+            ? animal.temperamento.length === 0
+              ? ""
+              : animal.temperamento.length === 1
+                ? animal.temperamento[0]
+                : animal.temperamento.slice(0, -1).join(", ") +
+                  " e " +
+                  animal.temperamento.slice(-1)
+            : animal.temperamento || ""}
+        </Text>
+
+        <Text style={styles.label}>NECESSIDADES</Text>
+        <Text style={styles.value}>{formatNecessidades()}</Text>
+
+        <Text style={styles.label}>
+          MAIS SOBRE {animal.nome?.toUpperCase()}
+        </Text>
+        <Text style={styles.description}>{animal.sobre}</Text>
+
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fafafa" },
+  header: {
+    height: 56,
+    backgroundColor: "#fee29b",
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerTitle: {
+    color: "#434343",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  headerButton: {
+    padding: 8,
+  },
+  banner: { width: "100%", height: 184 },
+  content: { padding: 16 },
+  detailsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  name: { fontSize: 16, color: "#434343", fontWeight: "500" },
+  fab: {
+    width: 56,
+    height: 56,
+    backgroundColor: "#fafafa",
+    borderRadius: 28,
+    elevation: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: -40, // Efeito de sobreposição
+  },
+  infoGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  label: { fontSize: 12, color: "#f7a800", marginTop: 12 }, // Cor laranja das etiquetas
+  value: { fontSize: 14, color: "#757575" },
+  divider: { height: 1, backgroundColor: "#e0e0e0", marginVertical: 16 },
+  description: { fontSize: 14, color: "#434343", lineHeight: 20 },
+  button: {
+    backgroundColor: "#fdcf58",
+    height: 40,
+    width: 232,
+    borderRadius: 2,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 28,
+    marginBottom: 24,
+  },
+  buttonText: { color: "#434343", fontSize: 12, fontWeight: "500" },
+});

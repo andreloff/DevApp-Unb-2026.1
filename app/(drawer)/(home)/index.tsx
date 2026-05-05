@@ -1,4 +1,4 @@
-import { useAuth } from "@/src/hooks/useAuth";
+import { auth } from "@/src/services/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -8,13 +8,14 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const { user } = useAuth(); 
 
-  const handleProtectedAction = (route: string) => {
-    if (user) {
-      router.push(route);
+  const handleCadastrarAnimal = () => {
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+      router.push("/cadastroAnimal");
     } else {
-      router.push("/cadastro");
+      router.push("/loginScreen");
     }
   };
 
@@ -36,28 +37,18 @@ export default function HomeScreen() {
 
       <Text style={styles.bodyText}>
         Bem vindo ao Meau!{"\n"}Aqui você pode adotar, doar e ajudar cães e
-        gatos com facilidade. 
+        gatos com facilidade.
         {"\n"}Qual o seu interesse?
       </Text>
 
-      <Pressable 
-        style={styles.bodyButton} 
-        onPress={() => handleProtectedAction("/failScreen")}
+      <Pressable
+        style={styles.bodyButton}
+        onPress={() => router.push("/adotar")}
       >
         <Text style={styles.buttonText}>ADOTAR</Text>
       </Pressable>
 
-      <Pressable 
-        style={styles.bodyButton} 
-        onPress={() => handleProtectedAction("/failScreen")}
-      >
-        <Text style={styles.buttonText}>AJUDAR</Text>
-      </Pressable>
-
-      <Pressable 
-        style={styles.bodyButton} 
-        onPress={() => handleProtectedAction("/cadastroAnimal")}
-      >
+      <Pressable style={styles.bodyButton} onPress={handleCadastrarAnimal}>
         <Text style={styles.buttonText}>CADASTRAR ANIMAL</Text>
       </Pressable>
 
