@@ -11,14 +11,14 @@ export const useAuth = () => {
       console.log("Login com sucesso!");
       console.log("Usuário: ", user.user.email);
       setError("");
-      return true
+      return true;
     } catch (err: unknown) {
-        console.log("ERRO no Login!")
+      console.log("ERRO no Login!", err);
       if (err instanceof Error) {
-        if (err.message.includes("auth/wrong-password")){
-            console.log("Senha incorreta.")    
-        } else if (err.message.includes("auth/user-not-found")){
-            console.log("Usuário não existe") ;
+        if (err.message.includes("auth/wrong-password")) {
+          console.log("Senha incorreta.");
+        } else if (err.message.includes("auth/user-not-found")) {
+          console.log("Usuário não existe");
         }
         setError(err.message);
       }

@@ -1,14 +1,13 @@
-import { useAuth } from '@/src/hooks/useAuth';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useAuth } from "@/src/hooks/useAuth";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-
 export default function LoginScreen() {
-
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const { handleLogin, handleRegister, error } = useAuth();
   const router = useRouter();
@@ -18,7 +17,7 @@ export default function LoginScreen() {
 
     if (success) {
       console.log("Indo pra home...");
-      router.replace('/(drawer)/(home)');
+      router.replace("/(drawer)/(home)/adotar");
     } else {
       console.log("Login falhou");
     }
@@ -26,10 +25,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.bgContainer}>
-      
       <View style={styles.headerContainer}>
         <Pressable style={styles.menuPressable}>
-          <Ionicons name="menu-outline" size={32} color="#757575"/>
+          <Ionicons name="menu-outline" size={32} color="#757575" />
         </Pressable>
         <Text style={styles.titleText}>Login</Text>
       </View>
@@ -37,52 +35,63 @@ export default function LoginScreen() {
       <View style={inputFieldStyles.inputFieldContainer}>
         <TextInput
           style={inputFieldStyles.inputText}
-          placeholder="Nome de usuário"
+          placeholder="Email"
           value={email}
           onChangeText={setEmail}
         />
-        <TextInput
-          style={inputFieldStyles.inputText}
-          placeholder="Senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={inputFieldStyles.passwordFieldContainer}>
+          <TextInput
+            style={inputFieldStyles.passwordInput}
+            placeholder="Senha"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <Pressable
+            style={inputFieldStyles.passwordToggle}
+            onPress={() => setShowPassword((prev) => !prev)}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={24}
+              color="#757575"
+            />
+          </Pressable>
+        </View>
       </View>
-      
-      <Pressable 
-        style={styles.bodyButton}
-        onPress={onLoginPress}
-      >
+
+      <Pressable style={styles.bodyButton} onPress={onLoginPress}>
         <Text style={styles.buttonText}>ENTRAR</Text>
       </Pressable>
 
       <View style={socialMediaStyles.socialLoginContainer}>
         <Pressable style={socialMediaStyles.facebookLoginButton}>
-          <Ionicons name="logo-facebook" size={32} color="#FAFAFA"/>
-          <Text style={socialMediaStyles.socialButtonText}>ENTRAR COM FACEBOOK</Text>
+          <Ionicons name="logo-facebook" size={32} color="#FAFAFA" />
+          <Text style={socialMediaStyles.socialButtonText}>
+            ENTRAR COM FACEBOOK
+          </Text>
         </Pressable>
         <Pressable style={socialMediaStyles.googleLoginButton}>
-          <Ionicons name="logo-google" size={32} color="#FAFAFA"/>
-          <Text style={socialMediaStyles.socialButtonText}>ENTRAR COM GOOGLE</Text>
+          <Ionicons name="logo-google" size={32} color="#FAFAFA" />
+          <Text style={socialMediaStyles.socialButtonText}>
+            ENTRAR COM GOOGLE
+          </Text>
         </Pressable>
       </View>
 
-      <Pressable 
-        style={{ marginTop: 40, marginBottom: 20 }} 
-        onPress={() => router.push('/cadastro_pessoal')}
+      <Pressable
+        style={{ marginTop: 40, marginBottom: 20 }}
+        onPress={() => router.push("/cadastro_pessoal")}
       >
-        <Text style={{ color: '#88c9bf', fontWeight: 'bold', fontSize: 16 }}>
+        <Text style={{ color: "#88c9bf", fontWeight: "bold", fontSize: 16 }}>
           Não tem conta? Cadastre-se
         </Text>
       </Pressable>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-
   bgContainer: {
     flex: 1,
     alignItems: "center",
@@ -108,7 +117,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingLeft: 40,
     fontSize: 24,
-    color: "#000000"
+    color: "#000000",
   },
 
   bodyButton: {
@@ -125,30 +134,53 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: 20,
     fontSize: 18,
-    color: "#343434"
+    color: "#343434",
   },
-
-})
+});
 
 const inputFieldStyles = StyleSheet.create({
-
   inputFieldContainer: {
     alignItems: "center",
     width: "100%",
     paddingTop: 40,
   },
 
-  inputText:{
+  inputText: {
     width: 340,
     height: 60,
-    padding: 14,
+    paddingLeft: 14,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 5,
     elevation: 1,
+    marginBottom: 16,
+    fontSize: 16,
   },
 
-})
+  passwordFieldContainer: {
+    width: 340,
+    height: 60,
+    borderRadius: 5,
+    backgroundColor: "#FFFFFF",
+    elevation: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+  },
+
+  passwordInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 16,
+  },
+
+  passwordToggle: {
+    padding: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
 
 const socialMediaStyles = StyleSheet.create({
-
   socialLoginContainer: {
     alignItems: "center",
     width: "100%",
@@ -183,7 +215,6 @@ const socialMediaStyles = StyleSheet.create({
     textAlign: "center",
     margin: 20,
     fontSize: 16,
-    color: "#FAFAFA"
+    color: "#FAFAFA",
   },
-
-})
+});
