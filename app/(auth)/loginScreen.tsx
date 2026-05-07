@@ -22,12 +22,15 @@ export default function LoginScreen() {
       console.log("Login falhou");
     }
   };
+  const onMenuPress = () => {
+    router.back();
+  };
 
   return (
     <View style={styles.bgContainer}>
       <View style={styles.headerContainer}>
-        <Pressable style={styles.menuPressable}>
-          <Ionicons name="menu-outline" size={32} color="#757575" />
+        <Pressable style={styles.menuPressable} onPress={onMenuPress}>
+          <Ionicons name="chevron-back" size={32} color="#757575" />
         </Pressable>
         <Text style={styles.titleText}>Login</Text>
       </View>
