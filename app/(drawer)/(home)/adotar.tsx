@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,6 +20,7 @@ interface Animal {
   sexo: string;
   porte: string;
   idade: string;
+  disponivel: boolean;
   usuarioId?: string;
   localizacao?: string;
   fotoUrl: string;
@@ -36,7 +37,10 @@ export default function Adotar() {
   };
 
   useEffect(() => {
-    const q = query(collection(db, "animais"));
+    const q = query(
+      collection(db, "animais"),
+      where("disponivel", "==", true)
+    );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs: Animal[] = [];
