@@ -47,6 +47,14 @@ export default function CustomDrawer(props: any) {
     }
   };
 
+  const handleMeusPets = () => {
+    if (auth.currentUser) {
+      props.navigation.navigate("(home)", { screen: "meusAnimais" });
+    } else {
+      router.push("/loginScreen");
+    }
+  };
+
   const handleHeaderPress = () => {
     if (!auth.currentUser) {
       router.push("/loginScreen");
@@ -71,7 +79,7 @@ export default function CustomDrawer(props: any) {
         />
         <DrawerItem
           label="Meus Pets"
-          onPress={() => props.navigation.navigate("(profile)")}
+          onPress={handleMeusPets}
         />
         <DrawerItem
           label="Favoritos"
@@ -88,7 +96,10 @@ export default function CustomDrawer(props: any) {
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
-        <DrawerItem label="Cadastrar um pet" onPress={handleCadastroPet} />
+        <DrawerItem 
+          label="Cadastrar um pet" 
+          onPress={handleCadastroPet} 
+        />
         <DrawerItem
           label="Adotar um pet"
           onPress={() =>

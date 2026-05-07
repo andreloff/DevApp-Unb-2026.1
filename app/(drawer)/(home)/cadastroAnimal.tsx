@@ -72,6 +72,7 @@ export default function CadastroAnimal() {
         medicamentos, 
         objetos, 
         sobre,
+        disponivel: true,
         usuarioId: user.uid,
         fotoUrl: image || "", 
         dataCadastro: new Date().toISOString()

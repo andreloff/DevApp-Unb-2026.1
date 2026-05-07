@@ -1,18 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { db } from "../../../src/services/firebaseConfig";
+import { auth, db } from "../../../src/services/firebaseConfig";
 
 interface Animal {
   id: string;
@@ -26,7 +26,7 @@ interface Animal {
   fotoUrl: string;
 }
 
-export default function Adotar() {
+export default function MeusAnimais() {
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -36,10 +36,24 @@ export default function Adotar() {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
+  const toggleDisponivel = async (animal: Animal) => {
+    try {
+        const animalRef = doc(db, "animais", animal.id);
+
+        await updateDoc(animalRef, {
+        disponivel: !animal.disponivel,
+        });
+
+    } catch (error) {
+        console.log("Erro ao atualizar disponibilidade:", error);
+    }
+  };
+
   useEffect(() => {
+
     const q = query(
       collection(db, "animais"),
-      where("disponivel", "==", true)
+      where("usuarioId", "==", auth.currentUser?.uid)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -96,7 +110,19 @@ export default function Adotar() {
     >
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{item.nome}</Text>
-        <Ionicons name="heart-outline" size={24} color="#434343" />
+        <TouchableOpacity
+          onPress={(e) => {
+            e.stopPropagation();
+            toggleDisponivel(item);
+          }   
+        }
+        >
+            <Ionicons
+                name={item.disponivel ? "eye-outline" : "eye-off-outline"}
+                size={24}
+                color="#434343"
+            />
+        </TouchableOpacity>
       </View>
       <Image
         source={{
@@ -123,7 +149,7 @@ export default function Adotar() {
         <TouchableOpacity style={styles.headerButton} onPress={onMenuPress}>
           <Ionicons name="menu-outline" size={24} color="#434343" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Adotar</Text>
+        <Text style={styles.headerTitle}>Meus Pets</Text>
         <TouchableOpacity style={styles.headerButton}>
           <Ionicons name="search-outline" size={24} color="#434343" />
         </TouchableOpacity>
