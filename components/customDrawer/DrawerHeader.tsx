@@ -1,20 +1,40 @@
-import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 type DrawerHeaderProps = {
   name?: string | null;
+  photoUrl?: string | null;
   onPress?: () => void;
 };
 
-export default function DrawerHeader({ name, onPress }: DrawerHeaderProps) {
+export default function DrawerHeader({
+  name,
+  photoUrl,
+  onPress,
+}: DrawerHeaderProps) {
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
       style={styles.container}
     >
-      <View style={styles.avatar} />
-      <View style={styles.headerInfo}>
+      <View style={styles.avatar}>
+        {photoUrl ? (
+          <Image
+            source={{
+              uri: photoUrl.startsWith("data:image")
+                ? photoUrl
+                : `data:image/jpeg;base64,${photoUrl}`,
+            }}
+            style={styles.avatarImage}
+          />
+        ) : (
+          <Image
+            source={require("../../assets/images/avatar_placeholder.png")}
+            style={styles.avatarImage}
+          />
+        )}
+      </View>
+      {/* <View style={styles.headerInfo}>
         <Text style={styles.nameText}>{name || "Fazer login"}</Text>
         <Ionicons
           name="caret-down-outline"
@@ -22,7 +42,7 @@ export default function DrawerHeader({ name, onPress }: DrawerHeaderProps) {
           color="#434343"
           style={styles.headerIcon}
         />
-      </View>
+      </View> */}
     </TouchableOpacity>
   );
 }
@@ -45,6 +65,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F7F7",
     borderWidth: 2,
     borderColor: "#FFFFFF",
+  },
+
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 32,
+  },
+
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#F7F7F7",
   },
 
   headerInfo: {

@@ -12,12 +12,14 @@ import DrawerSection from "./DrawerSection";
 
 export default function CustomDrawer(props: any) {
   const [userName, setUserName] = useState<string | null>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setUserName(null);
+        setUserPhoto(null);
         return;
       }
 
@@ -28,11 +30,14 @@ export default function CustomDrawer(props: any) {
           setUserName(
             data.nome_usuario || data.nome_completo || user.email || "Usuário",
           );
+          setUserPhoto(data.fotoUrl || null);
         } else {
           setUserName(user.email || "Usuário");
+          setUserPhoto(null);
         }
       } catch {
         setUserName(user.email || "Usuário");
+        setUserPhoto(null);
       }
     });
 
@@ -59,7 +64,11 @@ export default function CustomDrawer(props: any) {
       contentContainerStyle={styles.drawerContent}
       style={styles.drawerScroll}
     >
-      <DrawerHeader name={userName} onPress={handleHeaderPress} />
+      <DrawerHeader
+        name={userName}
+        photoUrl={userPhoto}
+        onPress={handleHeaderPress}
+      />
 
       <DrawerSection
         title={userName || "Fazer login"}
@@ -161,6 +170,8 @@ const styles = StyleSheet.create({
 
   userSectionContainer: {
     backgroundColor: "#88C9BF",
+    borderTopWidth: 0,
+    marginTop: -1,
   },
 
   shortcutSectionContainer: {
