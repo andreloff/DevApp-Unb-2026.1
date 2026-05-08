@@ -1,54 +1,68 @@
-<<<<<<< HEAD
-# Welcome to your Expo app 👋
+# 🐾 Meau - Adoção e Proteção Animal
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![Status do Projeto](https://img.shields.io/badge/Status-Em_Desenvolvimento_Ativo-success?style=for-the-badge)
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo-1B1F23?style=for-the-badge&logo=expo&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Disciplina](https://img.shields.io/badge/Disciplina-Desenvolvimento_de_Aplicativos-blue?style=for-the-badge)
 
-## Get started
+Bem-vindo ao repositório do **Meau**! Este é um aplicativo móvel voltado para facilitar a adoção e a proteção de animais, conectando pets que precisam de um lar a pessoas dispostas a adotá-los.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🎓 Contexto Acadêmico
 
-2. Start the app
+Este projeto está sendo desenvolvido de forma incremental e iterativa como requisito prático para a disciplina de **Desenvolvimento de Aplicativos** da Universidade de Brasília (UnB). 
 
-   ```bash
-   npx expo start
-   ```
+> ⚠️ **Nota de Isenção:** Este é um projeto de cunho estritamente educacional, construído a partir de engenharia reversa e estudo de caso do aplicativo real "Meau". O objetivo é aplicar na prática conceitos de desenvolvimento mobile, arquitetura de software e integração de serviços em nuvem.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🚀 Tecnologias Utilizadas
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+* **Frontend:** React Native com o framework Expo.
+* **Backend/Database:** Google Firebase e Firestore.
+* **Roteamento:** Expo Router (file-based routing).
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 💻 Como rodar o projeto localmente
 
+### 1. Pré-requisitos
+Certifique-se de ter o **Node.js** e o **npm** instalados na sua máquina.
+
+### 2. Instalação
+Clone o repositório e baixe as dependências:
 ```bash
-npm run reset-project
+npm install
+
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 3. Execução
 
-## Learn more
+Inicie o servidor de desenvolvimento:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx expo start
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
 
-## Join the community
+No terminal, você verá um QR Code e opções para abrir o aplicativo em:
 
-Join our community of developers creating universal apps.
+* 📱 **Expo Go** (no seu celular físico).
+* 🤖 **Emulador Android** (via Android Studio).
+* 🍏 **Simulador iOS**.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-=======
+> 💡 **Dica:** Para emular o aplicativo com máxima performance sem depender do Wi-Fi, conecte o celular via cabo e utilize o `scrcpy` para espelhar a tela.
 
->>>>>>> 8ea1f752efd843299db59bca09851bb33ad49441
+---
+
+## 📚 Documentação das Tecnologias
+
+* [Expo Docs](https://docs.expo.dev/)
+* [React Native Docs](https://reactnative.dev/docs/getting-started)
+* [Firebase Firestore](https://firebase.google.com/docs/firestore)
+
+```
+
+```
