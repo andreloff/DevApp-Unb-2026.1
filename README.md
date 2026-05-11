@@ -14,6 +14,12 @@ Bem-vindo ao repositório do **Meau**! Este é um aplicativo móvel voltado para
 
 Este projeto está sendo desenvolvido de forma incremental e iterativa como requisito prático para a disciplina de **Desenvolvimento de Aplicativos** da Universidade de Brasília (UnB). 
 
+Alunos:  
+André Cássio 160111943  
+Luan Marques 221030310  
+Vinicius Chaves 211060764
+
+
 > ⚠️ **Nota de Isenção:** Este é um projeto de cunho estritamente educacional, construído a partir de engenharia reversa e estudo de caso do aplicativo real "Meau". O objetivo é aplicar na prática conceitos de desenvolvimento mobile, arquitetura de software e integração de serviços em nuvem.
 
 ---
