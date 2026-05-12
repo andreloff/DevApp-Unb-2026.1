@@ -69,6 +69,4 @@ No terminal, você verá um QR Code e opções para abrir o aplicativo em:
 * [React Native Docs](https://reactnative.dev/docs/getting-started)
 * [Firebase Firestore](https://firebase.google.com/docs/firestore)
 
-```
 
-```
