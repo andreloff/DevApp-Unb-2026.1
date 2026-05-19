@@ -96,7 +96,13 @@ export default function CustomDrawer(props: any) {
         />
         <DrawerItem
           label="Chat"
-          onPress={() => props.navigation.navigate("(profile)")}
+          onPress={() => {
+            if (auth.currentUser) {
+              props.navigation.navigate("chats");
+            } else {
+              router.push("/loginScreen");
+            }
+          }}
         />
       </DrawerSection>
 

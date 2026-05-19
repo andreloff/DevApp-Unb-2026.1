@@ -1,24 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import LottieView from 'lottie-react-native';
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import { db } from "../../../src/services/firebaseConfig";
+
+import { auth, db } from "../../../src/services/firebaseConfig";
 
 export default function DetalhesAnimal() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [animal, setAnimal] = useState<any>(null);
   const [ownerLocation, setOwnerLocation] = useState("");
+  const [ownerName, setOwnerName] = useState("Tutor"); 
+  const [ownerPhoto, setOwnerPhoto] = useState(""); 
   const [loading, setLoading] = useState(true);
+  
+  const [showAnimation, setShowAnimation] = useState(false); 
 
   const handleBack = () => {
     router.back();
@@ -47,6 +55,9 @@ export default function DetalhesAnimal() {
                 ? `${cidade} - ${estado}`
                 : cidade || estado || "",
             );
+            
+            setOwnerName(userData.nome_completo || userData.nome_usuario || "Tutor"); 
+            setOwnerPhoto(userData.fotoUrl || ""); 
           }
         }
       }
@@ -83,168 +94,223 @@ export default function DetalhesAnimal() {
     return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
   };
 
+  const iniciarConversa = async () => {
+    const usuarioAtual = auth.currentUser;
+
+    if (!usuarioAtual) {
+      Alert.alert("Atenção", "Você precisa estar logado para adotar um animal.");
+      router.push("/loginScreen");
+      return;
+    }
+
+    if (usuarioAtual.uid === animal.usuarioId) {
+      Alert.alert("Ops!", "Você é o tutor deste animal.");
+      return;
+    }
+
+    setShowAnimation(true);
+
+    let meuNome = usuarioAtual.displayName || "Interessado";
+    let minhaFoto = ""; 
+    
+    try {
+      const meuDocSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+      if (meuDocSnap.exists()) {
+        const meusDados = meuDocSnap.data() as any;
+        meuNome = meusDados.nome_completo || meusDados.nome_usuario || meuNome;
+        minhaFoto = meusDados.fotoUrl || ""; 
+      }
+
+      const chatId = `${id}_${usuarioAtual.uid}`;
+      const chatRef = doc(db, "conversas", chatId);
+
+      await setDoc(chatRef, {
+        id_animal: id,
+        nome_animal: animal.nome,
+        id_tutor: animal.usuarioId, 
+        nome_tutor: ownerName, 
+        foto_tutor: ownerPhoto, 
+        id_interessado: usuarioAtual.uid,
+        nome_interessado: meuNome, 
+        foto_interessado: minhaFoto, 
+        ultima_mensagem: "Novo chat iniciado",
+        data_atualizacao: serverTimestamp()
+      }, { merge: true }); 
+
+      setTimeout(() => {
+        setShowAnimation(false); 
+        router.push(`/chat/${chatId}`);
+      }, 2000); 
+
+    } catch (error) {
+      console.error("Erro ao iniciar chat: ", error);
+      setShowAnimation(false); 
+      Alert.alert("Erro", "Não foi possível iniciar o chat no momento.");
+    }
+  };
+
   if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
   if (!animal) return <Text>Animal não encontrado.</Text>;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
-          <Ionicons name="chevron-back" size={24} color="#434343" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{animal.nome || "Detalhes"}</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <Ionicons name="share-social" size={24} color="#434343" />
-        </TouchableOpacity>
-      </View>
-      <Image
-        source={{
-          uri: animal.fotoUrl?.startsWith("data:image")
-            ? animal.fotoUrl
-            : `data:image/jpeg;base64,${animal.fotoUrl}`,
-        }}
-        style={styles.banner}
-      />
-
-      <View style={styles.content}>
-        <View style={styles.detailsHeader}>
-          <Text style={styles.name}>{animal.nome}</Text>
-          <TouchableOpacity style={styles.fab}>
-            <Ionicons name="heart-outline" size={28} color="#434343" />
+    <>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
+            <Ionicons name="chevron-back" size={24} color="#434343" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{animal.nome || "Detalhes"}</Text>
+          <TouchableOpacity style={styles.headerButton}>
+            <Ionicons name="share-social" size={24} color="#434343" />
           </TouchableOpacity>
         </View>
+        <Image
+          source={{
+            uri: animal.fotoUrl?.startsWith("data:image")
+              ? animal.fotoUrl
+              : `data:image/jpeg;base64,${animal.fotoUrl}`,
+          }}
+          style={styles.banner}
+        />
 
-        <View style={styles.infoGrid}>
-          <View>
-            <Text style={styles.label}>SEXO</Text>
-            <Text style={styles.value}>{animal.sexo}</Text>
+        <View style={styles.content}>
+          <View style={styles.detailsHeader}>
+            <Text style={styles.name}>{animal.nome}</Text>
+            <TouchableOpacity style={styles.fab}>
+              <Ionicons name="heart-outline" size={28} color="#434343" />
+            </TouchableOpacity>
           </View>
-          <View>
-            <Text style={styles.label}>PORTE</Text>
-            <Text style={styles.value}>{animal.porte}</Text>
+
+          <View style={styles.infoGrid}>
+            <View>
+              <Text style={styles.label}>SEXO</Text>
+              <Text style={styles.value}>{animal.sexo}</Text>
+            </View>
+            <View>
+              <Text style={styles.label}>PORTE</Text>
+              <Text style={styles.value}>{animal.porte}</Text>
+            </View>
+            <View>
+              <Text style={styles.label}>IDADE</Text>
+              <Text style={styles.value}>{animal.idade}</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.label}>IDADE</Text>
-            <Text style={styles.value}>{animal.idade}</Text>
+
+          <Text style={styles.label}>LOCALIZAÇÃO</Text>
+          <Text style={styles.value}>
+            {ownerLocation || animal.localizacao || ""}
+          </Text>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoGrid}>
+            <View>
+              <Text style={styles.label}>CASTRADO</Text>
+              <Text style={styles.value}>{animal.castrado ? "Sim" : "Não"}</Text>
+            </View>
+            <View>
+              <Text style={styles.label}>VERMIFUGADO</Text>
+              <Text style={styles.value}>
+                {animal.vermifugado ? "Sim" : "Não"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.infoGrid}>
+            <View>
+              <Text style={styles.label}>VACINADO</Text>
+              <Text style={styles.value}>{animal.vacinado ? "Sim" : "Não"}</Text>
+            </View>
+            <View>
+              <Text style={styles.label}>DOENÇAS</Text>
+              <Text style={styles.value}>
+                {animal.doenca ? animal.doenca : "Nenhuma"}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.label}>TEMPERAMENTO</Text>
+          <Text style={styles.value}>
+            {Array.isArray(animal.temperamento)
+              ? animal.temperamento.length === 0
+                ? ""
+                : animal.temperamento.length === 1
+                  ? animal.temperamento[0]
+                  : animal.temperamento.slice(0, -1).join(", ") +
+                    " e " +
+                    animal.temperamento.slice(-1)
+              : animal.temperamento || ""}
+          </Text>
+
+          <Text style={styles.label}>NECESSIDADES</Text>
+          <Text style={styles.value}>{formatNecessidades()}</Text>
+
+          <Text style={styles.label}>
+            MAIS SOBRE {animal.nome?.toUpperCase()}
+          </Text>
+          <Text style={styles.description}>{animal.sobre}</Text>
+
+          <TouchableOpacity style={styles.button} onPress={iniciarConversa}>
+            <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      <Modal visible={showAnimation} transparent={true} animationType="fade">
+        <View style={styles.modalBackground}>
+          <View style={styles.lottieContainer}>
+            <LottieView
+              source={require('../../../assets/animations/gato_amor.json')}
+              autoPlay
+              loop={true}
+              style={{ width: 250, height: 250 }}
+            />
+            <Text style={styles.lottieText}>Preparando o chat...</Text>
           </View>
         </View>
-
-        <Text style={styles.label}>LOCALIZAÇÃO</Text>
-        <Text style={styles.value}>
-          {ownerLocation || animal.localizacao || ""}
-        </Text>
-
-        <View style={styles.divider} />
-
-        <View style={styles.infoGrid}>
-          <View>
-            <Text style={styles.label}>CASTRADO</Text>
-            <Text style={styles.value}>{animal.castrado ? "Sim" : "Não"}</Text>
-          </View>
-          <View>
-            <Text style={styles.label}>VERMIFUGADO</Text>
-            <Text style={styles.value}>
-              {animal.vermifugado ? "Sim" : "Não"}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.infoGrid}>
-          <View>
-            <Text style={styles.label}>VACINADO</Text>
-            <Text style={styles.value}>{animal.vacinado ? "Sim" : "Não"}</Text>
-          </View>
-          <View>
-            <Text style={styles.label}>DOENÇAS</Text>
-            <Text style={styles.value}>
-              {animal.doenca ? animal.doenca : "Nenhuma"}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.label}>TEMPERAMENTO</Text>
-        <Text style={styles.value}>
-          {Array.isArray(animal.temperamento)
-            ? animal.temperamento.length === 0
-              ? ""
-              : animal.temperamento.length === 1
-                ? animal.temperamento[0]
-                : animal.temperamento.slice(0, -1).join(", ") +
-                  " e " +
-                  animal.temperamento.slice(-1)
-            : animal.temperamento || ""}
-        </Text>
-
-        <Text style={styles.label}>NECESSIDADES</Text>
-        <Text style={styles.value}>{formatNecessidades()}</Text>
-
-        <Text style={styles.label}>
-          MAIS SOBRE {animal.nome?.toUpperCase()}
-        </Text>
-        <Text style={styles.description}>{animal.sobre}</Text>
-
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </Modal>
+    </>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fafafa" },
-  header: {
-    height: 56,
-    backgroundColor: "#fee29b",
-    paddingTop: 8,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitle: {
-    color: "#434343",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  headerButton: {
-    padding: 8,
-  },
+  header: { height: 56, backgroundColor: "#fee29b", paddingTop: 8, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  headerTitle: { color: "#434343", fontSize: 18, fontWeight: "700" },
+  headerButton: { padding: 8 },
   banner: { width: "100%", height: 184 },
   content: { padding: 16 },
-  detailsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
+  detailsHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
   name: { fontSize: 16, color: "#434343", fontWeight: "500" },
-  fab: {
-    width: 56,
-    height: 56,
-    backgroundColor: "#fafafa",
-    borderRadius: 28,
-    elevation: 4,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: -40, // Efeito de sobreposição
-  },
-  infoGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  label: { fontSize: 12, color: "#f7a800", marginTop: 12 }, // Cor laranja das etiquetas
+  fab: { width: 56, height: 56, backgroundColor: "#fafafa", borderRadius: 28, elevation: 4, justifyContent: "center", alignItems: "center", marginTop: -40 },
+  infoGrid: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
+  label: { fontSize: 12, color: "#f7a800", marginTop: 12 }, 
   value: { fontSize: 14, color: "#757575" },
   divider: { height: 1, backgroundColor: "#e0e0e0", marginVertical: 16 },
   description: { fontSize: 14, color: "#434343", lineHeight: 20 },
-  button: {
-    backgroundColor: "#fdcf58",
-    height: 40,
-    width: 232,
-    borderRadius: 2,
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 28,
-    marginBottom: 24,
-  },
+  button: { backgroundColor: "#fdcf58", height: 40, width: 232, borderRadius: 2, alignSelf: "center", justifyContent: "center", alignItems: "center", marginTop: 28, marginBottom: 24 },
   buttonText: { color: "#434343", fontSize: 12, fontWeight: "500" },
+  
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  lottieContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  lottieText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#434343',
+    fontWeight: '600'
+  }
 });
