@@ -43,3 +43,6 @@ app-example
 # generated native folders
 /ios
 /android
+# Local expo states
+settings.json
+devices.json
