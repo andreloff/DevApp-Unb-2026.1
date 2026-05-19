@@ -17,7 +17,7 @@ export default function LoginScreen() {
 
     if (success) {
       console.log("Indo pra home...");
-      router.replace("/(drawer)/(home)/adotar");
+      router.replace("/(drawer)/(home)");
     } else {
       console.log("Login falhou");
     }

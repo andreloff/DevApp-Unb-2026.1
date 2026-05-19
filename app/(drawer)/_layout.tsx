@@ -9,9 +9,12 @@ export default function DrawerLayout() {
         headerShown: false,
         drawerStyle: styles.drawerContent,
       }}
-      drawerContent={(props) => 
-        <CustomDrawer {...props}/>}
-    />
+      drawerContent={(props) => <CustomDrawer {...props}/>}
+    >
+      <Drawer.Screen name="(home)" />
+      <Drawer.Screen name="(profile)" />
+      <Drawer.Screen name="chats" />
+    </Drawer>
   );
 }
 
@@ -25,5 +28,3 @@ const styles = StyleSheet.create({
     margin: 0
   },
 });
-
-
