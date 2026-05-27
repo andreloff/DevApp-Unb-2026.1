@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router"; // Importado para navegação dos Callouts
+import { useRouter } from "expo-router";
 import {
   collection,
   GeoPoint,
   onSnapshot,
   query,
   where,
-} from "firebase/firestore"; // Importações do Firestore
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,9 +18,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Callout, Marker } from "react-native-maps"; // Importado Callout
+import MapView, { Callout, Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { db } from "../../../src/services/firebaseConfig"; // Conexão com seu Firebase
+import { db } from "../../../src/services/firebaseConfig";
 
 interface Region {
   latitude: number;
@@ -29,7 +29,6 @@ interface Region {
   longitudeDelta: number;
 }
 
-// Interface para tipar os dados do animal que vêm do Firestore
 interface AnimalNoMapa {
   id: string;
   nome: string;
@@ -38,22 +37,38 @@ interface AnimalNoMapa {
   fotoUrl: string;
   coordenadas: GeoPoint | null;
 }
+function calcularDistancia(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) {
+  const R = 6371; // Raio da Terra em KM
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export default function MapaTela() {
   const navigation = useNavigation();
-  const router = useRouter(); // Instanciando o roteador
+  const router = useRouter();
   const [localizacao, setLocalizacao] = useState<Region | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // NOVO ESTADO: Lista de animais com localização cadastrada
   const [animais, setAnimais] = useState<AnimalNoMapa[]>([]);
+  const [raioMaximo, setRaioMaximo] = useState<number | null>(null);
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
-  // EFFECT 1: Captura a localização atual do Usuário (GPS)
   useEffect(() => {
     async function pegarLocalizacao() {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -68,7 +83,7 @@ export default function MapaTela() {
         setLocalizacao({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          latitudeDelta: 0.05, // Um pouco mais de afastamento inicial para enxergar os pets ao redor
+          latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         });
       } catch (error) {
@@ -81,12 +96,8 @@ export default function MapaTela() {
     pegarLocalizacao();
   }, []);
 
-  // NOVO EFFECT 2: Escuta em tempo real os animais cadastrados no Firestore
   useEffect(() => {
-    const q = query(
-      collection(db, "animais"),
-      where("disponivel", "==", true), // Filtra apenas animais que estão para adoção
-    );
+    const q = query(collection(db, "animais"), where("disponivel", "==", true));
 
     const unsubscribe = onSnapshot(
       q,
@@ -94,7 +105,7 @@ export default function MapaTela() {
         const lista: AnimalNoMapa[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          // Só adiciona ao mapa se o pet contiver um objeto GeoPoint válido
+          //ve se o animal tem as coordenadas pra colcoar no mapa
           if (data.coordenadas) {
             lista.push({
               id: doc.id,
@@ -102,7 +113,7 @@ export default function MapaTela() {
               especie: data.especie,
               sexo: data.sexo,
               fotoUrl: data.fotoUrl,
-              coordenadas: data.coordenadas, // GeoPoint do Firestore
+              coordenadas: data.coordenadas,
             });
           }
         });
@@ -115,10 +126,24 @@ export default function MapaTela() {
 
     return () => unsubscribe();
   }, []);
+  const animaisFiltrados = animais.filter((animal) => {
+    // se nao tem filtro vai todos
+    if (raioMaximo === null) return true;
+    // so vai filtrar depois da localização do usuario
+    if (!localizacao || !animal.coordenadas) return true;
+
+    const distancia = calcularDistancia(
+      localizacao.latitude,
+      localizacao.longitude,
+      animal.coordenadas.latitude,
+      animal.coordenadas.longitude,
+    );
+
+    return distancia <= raioMaximo;
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
-      {/* CABEÇALHO PADRÃO DO SEU APP (IGUAL À TELA ADOTAR) */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.headerButton}>
           <Ionicons name="menu-outline" size={24} color="#434343" />
@@ -130,8 +155,79 @@ export default function MapaTela() {
           <Ionicons name="search-outline" size={24} color="#ffd358" />
         </TouchableOpacity>
       </View>
+      <View style={styles.filterBar}>
+        <Text style={styles.filterTitle}>Distância máxima:</Text>
+        <View style={styles.filterOptions}>
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              raioMaximo === 1 && styles.filterChipActive,
+            ]}
+            onPress={() => setRaioMaximo(raioMaximo === 1 ? null : 1)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                raioMaximo === 1 && styles.filterChipTextActive,
+              ]}
+            >
+              1 km
+            </Text>
+          </TouchableOpacity>
 
-      {/* ÁREA DE CONTEÚDO */}
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              raioMaximo === 5 && styles.filterChipActive,
+            ]}
+            onPress={() => setRaioMaximo(raioMaximo === 5 ? null : 5)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                raioMaximo === 5 && styles.filterChipTextActive,
+              ]}
+            >
+              5 km
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              raioMaximo === 15 && styles.filterChipActive,
+            ]}
+            onPress={() => setRaioMaximo(raioMaximo === 15 ? null : 15)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                raioMaximo === 15 && styles.filterChipTextActive,
+              ]}
+            >
+              15 km
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              raioMaximo === null && styles.filterChipActive,
+            ]}
+            onPress={() => setRaioMaximo(null)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                raioMaximo === null && styles.filterChipTextActive,
+              ]}
+            >
+              Todos
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <View style={styles.mapContainer}>
         {loading ? (
           <View style={styles.centerState}>
@@ -157,7 +253,7 @@ export default function MapaTela() {
             showsUserLocation={true}
             showsMyLocationButton={true}
           >
-            {/* MARCADOR DA SUA LOCALIZAÇÃO */}
+            {/* marcador da localização do usuario */}
             {localizacao && (
               <Marker
                 coordinate={{
@@ -170,8 +266,8 @@ export default function MapaTela() {
               />
             )}
 
-            {/* NOVO: MAPEAMENTO DOS MARCADORES DE ANIMAIS COM FOTO */}
-            {animais.map((animal) => {
+            {/* marcadores dos animais com a fotinha */}
+            {animaisFiltrados.map((animal) => {
               const latPet = animal.coordenadas?.latitude;
               const lngPet = animal.coordenadas?.longitude;
 
@@ -184,7 +280,7 @@ export default function MapaTela() {
                   title={animal.nome}
                   description={`${animal.especie} - ${animal.sexo}`}
                 >
-                  {/* ÍCONE CUSTOMIZADO COM FOTO REDONDA */}
+                  {/* icone com a foto do animal*/}
                   <View style={styles.markerContainer}>
                     <View style={styles.avatarBorder}>
                       {animal.fotoUrl ? (
@@ -199,7 +295,6 @@ export default function MapaTela() {
                     <View style={styles.markerArrow} />
                   </View>
 
-                  {/* BALÃO AO CLICAR NO PET (LEVA PARA OS DETALHES) */}
                   <Callout
                     onPress={() =>
                       router.push({
@@ -269,7 +364,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // NOVOS ESTADOS DE ESTILIZAÇÃO DO MARCADOR DOS PETS
   markerContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -282,7 +376,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     backgroundColor: "#FFFFFF",
     borderWidth: 3,
-    borderColor: "#ffd358", // Amarelo padrão do Meau envolvido no avatar
+    borderColor: "#ffd358",
     justifyContent: "center",
     alignItems: "center",
     elevation: 3,
@@ -331,5 +425,42 @@ const styles = StyleSheet.create({
     color: "#589b9b",
     fontWeight: "bold",
     marginTop: 3,
+  },
+  filterBar: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  filterTitle: {
+    fontSize: 12,
+    color: "#757575",
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  filterOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  filterChip: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#dcdcdc",
+  },
+  filterChipActive: {
+    backgroundColor: "#ffd358",
+    borderColor: "#ffd358",
+  },
+  filterChipText: {
+    fontSize: 12,
+    color: "#434343",
+    fontWeight: "500",
+  },
+  filterChipTextActive: {
+    fontWeight: "700",
   },
 });

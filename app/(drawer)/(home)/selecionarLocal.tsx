@@ -22,7 +22,7 @@ export default function SelecionarLocalTela() {
   const [regiaoInicial, setRegiaoInicial] = useState<Region | null>(null);
   const [carregandoLocal, setCarregandoLocal] = useState(true);
 
-  // Efeito para focar no local do usuário assim que a tela abrir
+  //foca no usuario quando a tela abre
   useEffect(() => {
     async function obterLocalizacaoInicial() {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -31,7 +31,7 @@ export default function SelecionarLocalTela() {
           "Permissão negada",
           "Não foi possível obter sua localização atual para centralizar o mapa.",
         );
-        // Região padrão (Brasília) caso o GPS seja negado
+        // se o gps nao funcionar vai em brasilia
         setRegiaoInicial({
           latitude: -15.793889,
           longitude: -47.882778,
@@ -47,11 +47,10 @@ export default function SelecionarLocalTela() {
         setRegiaoInicial({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          latitudeDelta: 0.015, // Zoom mais aproximado e confortável
+          latitudeDelta: 0.015,
           longitudeDelta: 0.015,
         });
       } catch (error) {
-        // Fallback caso falhe o sensor de GPS
         setRegiaoInicial({
           latitude: -15.793889,
           longitude: -47.882778,
@@ -72,12 +71,10 @@ export default function SelecionarLocalTela() {
 
   const confirmarLocalizacao = () => {
     if (pontoSelecionado) {
-      // Modifica os parâmetros da rota anterior dinamicamente sem forçar um redirecionamento fixo
       router.setParams({
         mapLat: pontoSelecionado.latitude.toString(),
         mapLng: pontoSelecionado.longitude.toString(),
       });
-      // Volta exatamente para a tela que chamou o mapa (seja Cadastro ou Detalhes)
       router.back();
     }
   };
@@ -111,7 +108,7 @@ export default function SelecionarLocalTela() {
           style={styles.map}
           initialRegion={regiaoInicial || undefined}
           onPress={aoPressionarMapa}
-          showsUserLocation={true} // Mostra a bolinha azul nativa de onde o usuário está, sem colocar marcador de pet
+          showsUserLocation={true}
         >
           {pontoSelecionado && (
             <Marker

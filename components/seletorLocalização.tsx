@@ -23,12 +23,11 @@ export default function LocalizacaoSelector({
       const latitudeRetornada = parseFloat(globParams.mapLat);
       const longitudeRetornada = parseFloat(globParams.mapLng);
 
-      // Dispara o callback para a tela pai salvar o estado (Cadastro ou Detalhes)
       onLocationSelected(latitudeRetornada, longitudeRetornada);
     }
   }, [globParams.mapLat, globParams.mapLng]);
 
-  // Opção 1: Localização Aproximada (Borra o GPS com ruído de ~400m)
+  // localização aproximada da real
   const handleGetAproximado = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -42,9 +41,9 @@ export default function LocalizacaoSelector({
     try {
       const location = await Location.getCurrentPositionAsync({});
 
-      // Pequeno deslocamento aleatório para não expor a casa do tutor
-      const ruidoLat = (Math.random() - 0.5) * 0.005;
-      const ruidoLng = (Math.random() - 0.5) * 0.005;
+      // mudar a localização real para aproximada
+      const ruidoLat = (Math.random() - 0.5) * 0.002;
+      const ruidoLng = (Math.random() - 0.5) * 0.002;
 
       const latAproximada = location.coords.latitude + ruidoLat;
       const lngAproximada = location.coords.longitude + ruidoLng;
@@ -56,7 +55,7 @@ export default function LocalizacaoSelector({
     }
   };
 
-  // Opção 2: Direciona para a tela do mapa interativo
+  // direciona para tela de escolha de local pelo mapa
   const handleMarcarNoMapa = () => {
     setIsOpen(false);
     router.push("/selecionarLocal");
@@ -110,7 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     elevation: 1,
   },
-  mainButtonSuccess: { backgroundColor: "#CFE9E5" }, // Tom esverdeado dos blocos de sucesso do Meau
+  mainButtonSuccess: { backgroundColor: "#CFE9E5" },
   mainButtonText: { color: "#434343", fontSize: 12, fontWeight: "bold" },
   menuContainer: {
     backgroundColor: "#FFFFFF",
