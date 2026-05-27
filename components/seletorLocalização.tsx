@@ -43,8 +43,8 @@ export default function LocalizacaoSelector({
       const location = await Location.getCurrentPositionAsync({});
 
       // Pequeno deslocamento aleatório para não expor a casa do tutor
-      const ruidoLat = (Math.random() - 0.5) * 0.008;
-      const ruidoLng = (Math.random() - 0.5) * 0.008;
+      const ruidoLat = (Math.random() - 0.5) * 0.005;
+      const ruidoLng = (Math.random() - 0.5) * 0.005;
 
       const latAproximada = location.coords.latitude + ruidoLat;
       const lngAproximada = location.coords.longitude + ruidoLng;
