@@ -1,7 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  GeoPoint,
+  getDoc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +33,7 @@ interface Animal {
   usuarioId?: string;
   localizacao?: string;
   fotoUrl: string;
+  coordenadas?: GeoPoint | null;
 }
 
 export default function Adotar() {
@@ -37,10 +47,7 @@ export default function Adotar() {
   };
 
   useEffect(() => {
-    const q = query(
-      collection(db, "animais"),
-      where("disponivel", "==", true)
-    );
+    const q = query(collection(db, "animais"), where("disponivel", "==", true));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs: Animal[] = [];
@@ -51,6 +58,28 @@ export default function Adotar() {
       const loadLocations = async () => {
         await Promise.all(
           docs.map(async (item) => {
+            if (item.coordenadas) {
+              try {
+                const resultado = await Location.reverseGeocodeAsync({
+                  latitude: item.coordenadas.latitude,
+                  longitude: item.coordenadas.longitude,
+                });
+
+                if (resultado && resultado.length > 0) {
+                  const lugar = resultado[0];
+                  const cidade = lugar.subregion || lugar.city || "";
+                  const estado = lugar.region || "";
+
+                  item.localizacao =
+                    cidade && estado
+                      ? `${cidade} - ${estado}`
+                      : cidade || estado || "Local desconhecido";
+                  return;
+                }
+              } catch (err) {
+                console.log("Erro no reverseGeocode do animal: ", item.id, err);
+              }
+            }
             if (!item.localizacao && item.usuarioId) {
               const userSnap = await getDoc(
                 doc(db, "usuarios", item.usuarioId),
@@ -62,7 +91,7 @@ export default function Adotar() {
                 item.localizacao =
                   cidade && estado
                     ? `${cidade} - ${estado}`
-                    : cidade || estado || "";
+                    : cidade || estado || "Local desconhecido";
               }
             }
           }),

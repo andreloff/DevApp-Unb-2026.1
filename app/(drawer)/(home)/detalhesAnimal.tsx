@@ -1,5 +1,6 @@
 import LocalizacaoSelector from "@/components/seletorLocalização";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   doc,
@@ -63,13 +64,36 @@ export default function DetalhesAnimal() {
           );
           if (userSnap.exists()) {
             const userData = userSnap.data() as any;
-            const cidade = userData.cidade || "";
-            const estado = userData.estado || "";
-            setOwnerLocation(
-              cidade && estado
-                ? `${cidade} - ${estado}`
-                : cidade || estado || "",
-            );
+            if (animalData.coordenadas) {
+              const res = await Location.reverseGeocodeAsync({
+                latitude: animalData.coordenadas.latitude,
+                longitude: animalData.coordenadas.longitude,
+              });
+              if (res && res.length > 0) {
+                // console.log(
+                //   "Resultado do reverse geocode:",
+                //   res[0].subregion,
+                //   res[0].region,
+                //   res[0].district,
+                // );
+                const distrito = res[0].district || "";
+                const cidade = res[0].subregion || res[0].city || "";
+                const estado = res[0].region || "";
+                setOwnerLocation(
+                  cidade && estado && distrito
+                    ? `${distrito} - ${cidade} - ${estado}`
+                    : cidade || estado || "Local não mapeado",
+                );
+              }
+            } else {
+              const cidade = userData.cidade || "";
+              const estado = userData.estado || "";
+              setOwnerLocation(
+                cidade && estado
+                  ? `${cidade} - ${estado}`
+                  : cidade || estado || "",
+              );
+            }
 
             setOwnerName(
               userData.nome_completo || userData.nome_usuario || "Tutor",
