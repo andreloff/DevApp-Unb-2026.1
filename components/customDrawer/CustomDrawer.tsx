@@ -86,10 +86,7 @@ export default function CustomDrawer(props: any) {
           label="Meu Perfil"
           onPress={() => props.navigation.navigate("(profile)")}
         />
-        <DrawerItem
-          label="Meus Pets"
-          onPress={handleMeusPets}
-        />
+        <DrawerItem label="Meus Pets" onPress={handleMeusPets} />
         <DrawerItem
           label="Favoritos"
           onPress={() => props.navigation.navigate("(profile)")}
@@ -111,14 +108,17 @@ export default function CustomDrawer(props: any) {
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
-        <DrawerItem 
-          label="Cadastrar um pet" 
-          onPress={handleCadastroPet} 
-        />
+        <DrawerItem label="Cadastrar um pet" onPress={handleCadastroPet} />
         <DrawerItem
           label="Adotar um pet"
           onPress={() =>
             props.navigation.navigate("(home)", { screen: "adotar" })
+          }
+        />
+        <DrawerItem
+          label="Mapa"
+          onPress={() =>
+            props.navigation.navigate("(home)", { screen: "mapa" })
           }
         />
         <DrawerItem
