@@ -1,7 +1,16 @@
+import LocalizacaoSelector from "@/components/seletorLocalização";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import LottieView from 'lottie-react-native';
+import {
+  doc,
+  GeoPoint,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,22 +21,29 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 import { auth, db } from "../../../src/services/firebaseConfig";
 
 export default function DetalhesAnimal() {
   const { id } = useLocalSearchParams();
+  const { mapLat, mapLng } = useLocalSearchParams<{
+    mapLat?: string;
+    mapLng?: string;
+  }>();
   const router = useRouter();
   const [animal, setAnimal] = useState<any>(null);
   const [ownerLocation, setOwnerLocation] = useState("");
-  const [ownerName, setOwnerName] = useState("Tutor"); 
-  const [ownerPhoto, setOwnerPhoto] = useState(""); 
+  const [ownerName, setOwnerName] = useState("Tutor");
+  const [ownerPhoto, setOwnerPhoto] = useState("");
   const [loading, setLoading] = useState(true);
-  
-  const [showAnimation, setShowAnimation] = useState(false); 
-
+  const [showAnimation, setShowAnimation] = useState(false);
+  useEffect(() => {
+    if (mapLat && mapLng && id) {
+      handleAtualizarLocalizacao(parseFloat(mapLat), parseFloat(mapLng));
+    }
+  }, [mapLat, mapLng]);
   const handleBack = () => {
     router.back();
   };
@@ -48,16 +64,41 @@ export default function DetalhesAnimal() {
           );
           if (userSnap.exists()) {
             const userData = userSnap.data() as any;
-            const cidade = userData.cidade || "";
-            const estado = userData.estado || "";
-            setOwnerLocation(
-              cidade && estado
-                ? `${cidade} - ${estado}`
-                : cidade || estado || "",
+            if (animalData.coordenadas) {
+              const res = await Location.reverseGeocodeAsync({
+                latitude: animalData.coordenadas.latitude,
+                longitude: animalData.coordenadas.longitude,
+              });
+              if (res && res.length > 0) {
+                // console.log(
+                //   "Resultado do reverse geocode:",
+                //   res[0].subregion,
+                //   res[0].region,
+                //   res[0].district,
+                // );
+                const distrito = res[0].district || "";
+                const cidade = res[0].subregion || res[0].city || "";
+                const estado = res[0].region || "";
+                setOwnerLocation(
+                  cidade && estado && distrito
+                    ? `${distrito} - ${cidade} - ${estado}`
+                    : cidade || estado || "Local não mapeado",
+                );
+              }
+            } else {
+              const cidade = userData.cidade || "";
+              const estado = userData.estado || "";
+              setOwnerLocation(
+                cidade && estado
+                  ? `${cidade} - ${estado}`
+                  : cidade || estado || "",
+              );
+            }
+
+            setOwnerName(
+              userData.nome_completo || userData.nome_usuario || "Tutor",
             );
-            
-            setOwnerName(userData.nome_completo || userData.nome_usuario || "Tutor"); 
-            setOwnerPhoto(userData.fotoUrl || ""); 
+            setOwnerPhoto(userData.fotoUrl || "");
           }
         }
       }
@@ -98,7 +139,10 @@ export default function DetalhesAnimal() {
     const usuarioAtual = auth.currentUser;
 
     if (!usuarioAtual) {
-      Alert.alert("Atenção", "Você precisa estar logado para adotar um animal.");
+      Alert.alert(
+        "Atenção",
+        "Você precisa estar logado para adotar um animal.",
+      );
       router.push("/loginScreen");
       return;
     }
@@ -111,46 +155,69 @@ export default function DetalhesAnimal() {
     setShowAnimation(true);
 
     let meuNome = usuarioAtual.displayName || "Interessado";
-    let minhaFoto = ""; 
-    
+    let minhaFoto = "";
+
     try {
       const meuDocSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
       if (meuDocSnap.exists()) {
         const meusDados = meuDocSnap.data() as any;
         meuNome = meusDados.nome_completo || meusDados.nome_usuario || meuNome;
-        minhaFoto = meusDados.fotoUrl || ""; 
+        minhaFoto = meusDados.fotoUrl || "";
       }
 
       const chatId = `${id}_${usuarioAtual.uid}`;
       const chatRef = doc(db, "conversas", chatId);
 
-      await setDoc(chatRef, {
-        id_animal: id,
-        nome_animal: animal.nome,
-        id_tutor: animal.usuarioId, 
-        nome_tutor: ownerName, 
-        foto_tutor: ownerPhoto, 
-        id_interessado: usuarioAtual.uid,
-        nome_interessado: meuNome, 
-        foto_interessado: minhaFoto, 
-        ultima_mensagem: "Novo chat iniciado",
-        data_atualizacao: serverTimestamp()
-      }, { merge: true }); 
+      await setDoc(
+        chatRef,
+        {
+          id_animal: id,
+          nome_animal: animal.nome,
+          id_tutor: animal.usuarioId,
+          nome_tutor: ownerName,
+          foto_tutor: ownerPhoto,
+          id_interessado: usuarioAtual.uid,
+          nome_interessado: meuNome,
+          foto_interessado: minhaFoto,
+          ultima_mensagem: "Novo chat iniciado",
+          data_atualizacao: serverTimestamp(),
+        },
+        { merge: true },
+      );
 
       setTimeout(() => {
-        setShowAnimation(false); 
+        setShowAnimation(false);
         router.push(`/chat/${chatId}`);
-      }, 2000); 
-
+      }, 2000);
     } catch (error) {
       console.error("Erro ao iniciar chat: ", error);
-      setShowAnimation(false); 
+      setShowAnimation(false);
       Alert.alert("Erro", "Não foi possível iniciar o chat no momento.");
     }
   };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
   if (!animal) return <Text>Animal não encontrado.</Text>;
+  const handleAtualizarLocalizacao = async (
+    latitude: number,
+    longitude: number,
+  ) => {
+    if (!id) return;
+    try {
+      const docRef = doc(db, "animais", id as string);
+      const novoGeoPoint = new GeoPoint(latitude, longitude);
+
+      await updateDoc(docRef, {
+        coordenadas: novoGeoPoint,
+      });
+
+      // Sincroniza o estado local da tela imediatamente
+      setAnimal((prev: any) => ({ ...prev, coordenadas: novoGeoPoint }));
+      Alert.alert("Sucesso", "Localização do pet atualizada no banco!");
+    } catch (e) {
+      Alert.alert("Erro", "Não foi possível salvar a localização.");
+    }
+  };
 
   return (
     <>
@@ -206,7 +273,9 @@ export default function DetalhesAnimal() {
           <View style={styles.infoGrid}>
             <View>
               <Text style={styles.label}>CASTRADO</Text>
-              <Text style={styles.value}>{animal.castrado ? "Sim" : "Não"}</Text>
+              <Text style={styles.value}>
+                {animal.castrado ? "Sim" : "Não"}
+              </Text>
             </View>
             <View>
               <Text style={styles.label}>VERMIFUGADO</Text>
@@ -218,7 +287,9 @@ export default function DetalhesAnimal() {
           <View style={styles.infoGrid}>
             <View>
               <Text style={styles.label}>VACINADO</Text>
-              <Text style={styles.value}>{animal.vacinado ? "Sim" : "Não"}</Text>
+              <Text style={styles.value}>
+                {animal.vacinado ? "Sim" : "Não"}
+              </Text>
             </View>
             <View>
               <Text style={styles.label}>DOENÇAS</Text>
@@ -248,6 +319,18 @@ export default function DetalhesAnimal() {
             MAIS SOBRE {animal.nome?.toUpperCase()}
           </Text>
           <Text style={styles.description}>{animal.sobre}</Text>
+          {auth.currentUser?.uid === animal.usuarioId && (
+            <View style={{ marginVertical: 12 }}>
+              <Text style={styles.label}>ATUALIZAR LOCALIZAÇÃO</Text>
+              <LocalizacaoSelector
+                hasLocation={
+                  animal.coordenadas !== undefined &&
+                  animal.coordenadas !== null
+                }
+                onLocationSelected={handleAtualizarLocalizacao}
+              />
+            </View>
+          )}
 
           <TouchableOpacity style={styles.button} onPress={iniciarConversa}>
             <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
@@ -259,7 +342,7 @@ export default function DetalhesAnimal() {
         <View style={styles.modalBackground}>
           <View style={styles.lottieContainer}>
             <LottieView
-              source={require('../../../assets/animations/gato_amor.json')}
+              source={require("../../../assets/animations/gato_amor.json")}
               autoPlay
               loop={true}
               style={{ width: 250, height: 250 }}
@@ -274,43 +357,78 @@ export default function DetalhesAnimal() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fafafa" },
-  header: { height: 56, backgroundColor: "#fee29b", paddingTop: 8, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  header: {
+    height: 56,
+    backgroundColor: "#fee29b",
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   headerTitle: { color: "#434343", fontSize: 18, fontWeight: "700" },
   headerButton: { padding: 8 },
   banner: { width: "100%", height: 184 },
   content: { padding: 16 },
-  detailsHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
+  detailsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
   name: { fontSize: 16, color: "#434343", fontWeight: "500" },
-  fab: { width: 56, height: 56, backgroundColor: "#fafafa", borderRadius: 28, elevation: 4, justifyContent: "center", alignItems: "center", marginTop: -40 },
-  infoGrid: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
-  label: { fontSize: 12, color: "#f7a800", marginTop: 12 }, 
+  fab: {
+    width: 56,
+    height: 56,
+    backgroundColor: "#fafafa",
+    borderRadius: 28,
+    elevation: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: -40,
+  },
+  infoGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  label: { fontSize: 12, color: "#f7a800", marginTop: 12 },
   value: { fontSize: 14, color: "#757575" },
   divider: { height: 1, backgroundColor: "#e0e0e0", marginVertical: 16 },
   description: { fontSize: 14, color: "#434343", lineHeight: 20 },
-  button: { backgroundColor: "#fdcf58", height: 40, width: 232, borderRadius: 2, alignSelf: "center", justifyContent: "center", alignItems: "center", marginTop: 28, marginBottom: 24 },
+  button: {
+    backgroundColor: "#fdcf58",
+    height: 40,
+    width: 232,
+    borderRadius: 2,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 28,
+    marginBottom: 24,
+  },
   buttonText: { color: "#434343", fontSize: 12, fontWeight: "500" },
-  
+
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   lottieContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
   lottieText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#434343',
-    fontWeight: '600'
-  }
+    color: "#434343",
+    fontWeight: "600",
+  },
 });

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
-import { useNavigation, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -14,8 +14,16 @@ import {
   View,
 } from "react-native";
 
-import * as ImagePicker from 'expo-image-picker';
-import { addDoc, arrayUnion, collection, doc, updateDoc } from "firebase/firestore";
+import * as ImagePicker from "expo-image-picker";
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  GeoPoint,
+  updateDoc,
+} from "firebase/firestore";
+import LocalizacaoSelector from "../../../components/seletorLocalização";
 import { auth, db } from "../../../src/services/firebaseConfig";
 
 export default function CadastroAnimal() {
@@ -34,17 +42,36 @@ export default function CadastroAnimal() {
   const [medicamentos, setMedicamentos] = useState("");
   const [objetos, setObjetos] = useState("");
   const [sobre, setSobre] = useState("");
-  
+
   const [image, setImage] = useState<string | null>(null);
+  const [lat, setLat] = useState<number | undefined>(undefined);
+  const [lng, setLng] = useState<number | undefined>(undefined);
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
+  const params = useLocalSearchParams<{ mapLat?: string; mapLng?: string }>();
 
+  useEffect(() => {
+    if (params.mapLat && params.mapLng) {
+      setLat(parseFloat(params.mapLat));
+      setLng(parseFloat(params.mapLng));
+    }
+  }, [params.mapLat, params.mapLng]);
   const pickImage = async (useCamera: boolean) => {
-    const result = useCamera 
-      ? await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.3, base64: true })
-      : await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.3, base64: true });
+    const result = useCamera
+      ? await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 0.3,
+          base64: true,
+        })
+      : await ImagePicker.launchImageLibraryAsync({
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 0.3,
+          base64: true,
+        });
 
     if (!result.canceled && result.assets[0].base64) {
       setImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
@@ -60,34 +87,35 @@ export default function CadastroAnimal() {
 
     try {
       const docRef = await addDoc(collection(db, "animais"), {
-        nome, 
-        especie, 
-        sexo, 
-        porte, 
-        idade, 
-        temperamento, 
-        saude, 
-        doenca, 
-        necessidades, 
-        medicamentos, 
-        objetos, 
+        nome,
+        especie,
+        sexo,
+        porte,
+        idade,
+        temperamento,
+        saude,
+        doenca,
+        necessidades,
+        medicamentos,
+        objetos,
         sobre,
         disponivel: true,
         usuarioId: user.uid,
-        fotoUrl: image || "", 
-        dataCadastro: new Date().toISOString()
+        fotoUrl: image || "",
+        dataCadastro: new Date().toISOString(),
+        coordenadas: lat && lng ? new GeoPoint(lat, lng) : null,
       });
 
       const userRef = doc(db, "usuarios", user.uid);
       await updateDoc(userRef, {
-        animais: arrayUnion(docRef.id)
+        animais: arrayUnion(docRef.id),
       });
 
       Alert.alert("Sucesso", "Animal cadastrado!");
       router.replace("/(drawer)/(home)");
-    } catch (e: any) { 
+    } catch (e: any) {
       console.log("ERRO AO SALVAR ANIMAL:", e);
-      Alert.alert("Erro", "Erro ao salvar: " + e.message); 
+      Alert.alert("Erro", "Erro ao salvar: " + e.message);
     }
   };
 
@@ -134,7 +162,12 @@ export default function CadastroAnimal() {
     );
   };
 
-  const MultiSelector = ({ label, options, currentSelection, onToggle }: any) => (
+  const MultiSelector = ({
+    label,
+    options,
+    currentSelection,
+    onToggle,
+  }: any) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{label}</Text>
       <View style={styles.radioGroup}>
@@ -149,7 +182,9 @@ export default function CadastroAnimal() {
                 isSelected && styles.radioButtonActive,
               ]}
             >
-              <Text style={[styles.radioText, isSelected && styles.radioTextActive]}>
+              <Text
+                style={[styles.radioText, isSelected && styles.radioTextActive]}
+              >
                 {opt}
               </Text>
             </TouchableOpacity>
@@ -164,7 +199,7 @@ export default function CadastroAnimal() {
       <Pressable style={styles.menuPressable} onPress={onMenuPress}>
         <Ionicons name="menu-outline" size={32} color="#88C9BF" />
       </Pressable>
-      
+
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>
           Tem um pet para adoção? Preencha os campos abaixo para cadastrá-lo.
@@ -183,18 +218,21 @@ export default function CadastroAnimal() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>FOTOS DO ANIMAL</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.photoContainer}
           onPress={() => {
             Alert.alert("Foto", "Escolha a fonte:", [
               { text: "Câmera", onPress: () => pickImage(true) },
               { text: "Galeria", onPress: () => pickImage(false) },
-              { text: "Cancelar", style: "cancel" }
+              { text: "Cancelar", style: "cancel" },
             ]);
           }}
         >
           {image ? (
-            <Image source={{ uri: image }} style={{ width: '100%', height: 128, borderRadius: 4 }} />
+            <Image
+              source={{ uri: image }}
+              style={{ width: "100%", height: 128, borderRadius: 4 }}
+            />
           ) : (
             <>
               <Ionicons name="add-circle-outline" size={40} color="#757575" />
@@ -204,15 +242,42 @@ export default function CadastroAnimal() {
         </TouchableOpacity>
       </View>
 
-      <Selector label="ESPÉCIE" options={["Cachorro", "Gato"]} currentEntry={especie} setEntry={setEspecie} />
-      <Selector label="SEXO" options={["Macho", "Fêmea"]} currentEntry={sexo} setEntry={setSexo} />
-      <Selector label="PORTE" options={["Pequeno", "Médio", "Grande"]} currentEntry={porte} setEntry={setPorte} />
-      <Selector label="IDADE" options={["Filhote", "Adulto", "Idoso"]} currentEntry={idade} setEntry={setIdade} />
-      
-      <MultiSelector 
-        label="TEMPERAMENTO" 
-        options={["Brincalhão", "Tímido", "Calmo", "Guarda", "Amoroso", "Preguiçoso"]} 
-        currentSelection={temperamento} 
+      <Selector
+        label="ESPÉCIE"
+        options={["Cachorro", "Gato"]}
+        currentEntry={especie}
+        setEntry={setEspecie}
+      />
+      <Selector
+        label="SEXO"
+        options={["Macho", "Fêmea"]}
+        currentEntry={sexo}
+        setEntry={setSexo}
+      />
+      <Selector
+        label="PORTE"
+        options={["Pequeno", "Médio", "Grande"]}
+        currentEntry={porte}
+        setEntry={setPorte}
+      />
+      <Selector
+        label="IDADE"
+        options={["Filhote", "Adulto", "Idoso"]}
+        currentEntry={idade}
+        setEntry={setIdade}
+      />
+
+      <MultiSelector
+        label="TEMPERAMENTO"
+        options={[
+          "Brincalhão",
+          "Tímido",
+          "Calmo",
+          "Guarda",
+          "Amoroso",
+          "Preguiçoso",
+        ]}
+        currentSelection={temperamento}
         onToggle={toggleSelection}
       />
 
@@ -223,9 +288,19 @@ export default function CadastroAnimal() {
             <TouchableOpacity
               key={item}
               onPress={() => toggleSaude(item)}
-              style={[styles.radioButton, saude.includes(item) && styles.radioButtonActive]}
+              style={[
+                styles.radioButton,
+                saude.includes(item) && styles.radioButtonActive,
+              ]}
             >
-              <Text style={[styles.radioText, saude.includes(item) && styles.radioTextActive]}>{item}</Text>
+              <Text
+                style={[
+                  styles.radioText,
+                  saude.includes(item) && styles.radioTextActive,
+                ]}
+              >
+                {item}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -245,9 +320,19 @@ export default function CadastroAnimal() {
             <TouchableOpacity
               key={item}
               onPress={() => toggleNecessidade(item)}
-              style={[styles.radioButton, necessidades.includes(item) && styles.radioButtonActive]}
+              style={[
+                styles.radioButton,
+                necessidades.includes(item) && styles.radioButtonActive,
+              ]}
             >
-              <Text style={[styles.radioText, necessidades.includes(item) && styles.radioTextActive]}>{item}</Text>
+              <Text
+                style={[
+                  styles.radioText,
+                  necessidades.includes(item) && styles.radioTextActive,
+                ]}
+              >
+                {item}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -261,9 +346,19 @@ export default function CadastroAnimal() {
         <View style={styles.radioGroup}>
           <TouchableOpacity
             onPress={() => toggleNecessidade("Objetos")}
-            style={[styles.radioButton, necessidades.includes("Objetos") && styles.radioButtonActive]}
+            style={[
+              styles.radioButton,
+              necessidades.includes("Objetos") && styles.radioButtonActive,
+            ]}
           >
-            <Text style={[styles.radioText, necessidades.includes("Objetos") && styles.radioTextActive]}>Objetos</Text>
+            <Text
+              style={[
+                styles.radioText,
+                necessidades.includes("Objetos") && styles.radioTextActive,
+              ]}
+            >
+              Objetos
+            </Text>
           </TouchableOpacity>
         </View>
         <TextInput
@@ -284,8 +379,26 @@ export default function CadastroAnimal() {
           onChangeText={setSobre}
         />
       </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>LOCALIZAÇÃO DO ANIMAL</Text>
+        <LocalizacaoSelector
+          hasLocation={
+            lat !== null &&
+            lng !== null &&
+            lat !== undefined &&
+            lng !== undefined
+          }
+          onLocationSelected={(latitude, longitude) => {
+            setLat(latitude);
+            setLng(longitude);
+          }}
+        />
+      </View>
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleCadastrarAnimal}>
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={handleCadastrarAnimal}
+      >
         <Text style={styles.submitButtonText}>COLOCAR PARA ADOÇÃO</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -295,19 +408,49 @@ export default function CadastroAnimal() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA" },
   menuPressable: { alignSelf: "flex-start", paddingTop: 10, paddingLeft: 14 },
-  infoBox: { backgroundColor: "#CFE9E5", padding: 16, margin: 16, borderRadius: 4 },
+  infoBox: {
+    backgroundColor: "#CFE9E5",
+    padding: 16,
+    margin: 16,
+    borderRadius: 4,
+  },
   infoText: { color: "#434343", fontSize: 14, textAlign: "center" },
   section: { paddingHorizontal: 16, marginBottom: 20 },
   sectionTitle: { color: "#F7A800", fontSize: 12, marginBottom: 8 },
-  input: { borderBottomWidth: 1, borderBottomColor: "#BDBDBD", paddingVertical: 8 },
-  photoContainer: { height: 128, backgroundColor: "#E6E7E8", justifyContent: "center", alignItems: "center", borderRadius: 4, elevation: 2 },
+  input: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#BDBDBD",
+    paddingVertical: 8,
+  },
+  photoContainer: {
+    height: 128,
+    backgroundColor: "#E6E7E8",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 4,
+    elevation: 2,
+  },
   photoText: { color: "#757575" },
   radioGroup: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 },
   radioGroupV: { flexDirection: "column", gap: 10, marginTop: 8 },
-  radioButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 4, backgroundColor: "#EDEEF0", alignItems: "center" },
+  radioButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    backgroundColor: "#EDEEF0",
+    alignItems: "center",
+  },
   radioButtonActive: { backgroundColor: "#F7A800" },
   radioText: { color: "#757575" },
   radioTextActive: { color: "#FFFFFF" },
-  submitButton: { backgroundColor: "#F7A800", margin: 16, padding: 12, alignItems: "center", borderRadius: 2, elevation: 2, marginBottom: 40 },
+  submitButton: {
+    backgroundColor: "#F7A800",
+    margin: 16,
+    padding: 12,
+    alignItems: "center",
+    borderRadius: 2,
+    elevation: 2,
+    marginBottom: 40,
+  },
   submitButtonText: { color: "#434343", fontWeight: "bold" },
 });

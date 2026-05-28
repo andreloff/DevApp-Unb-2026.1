@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.luanzinnh0.meauapp",
+      "package": "com.vinycius102010.MeauApp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -24,6 +24,11 @@
       "softwareKeyboardLayoutMode": "resize",
       "gradleProperties": {
         "newArchEnabled": "true"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBPjQrW4ffkY2s0Sgey2YB1vM_hK6rM_qY"
+        }
       }
     },
     "web": {
