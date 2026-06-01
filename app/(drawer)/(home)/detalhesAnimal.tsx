@@ -219,6 +219,8 @@ export default function DetalhesAnimal() {
     }
   };
 
+  const usuarioAtual = auth.currentUser; 
+
   return (
     <>
       <ScrollView style={styles.container}>
@@ -332,9 +334,11 @@ export default function DetalhesAnimal() {
             </View>
           )}
 
-          <TouchableOpacity style={styles.button} onPress={iniciarConversa}>
-            <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
-          </TouchableOpacity>
+          {usuarioAtual.uid !== animal.usuarioId && (
+            <TouchableOpacity style={styles.button} onPress={iniciarConversa}>
+              <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
 
