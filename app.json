@@ -23,9 +23,6 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
-      "gradleProperties": {
-        "newArchEnabled": "true"
-      },
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBPjQrW4ffkY2s0Sgey2YB1vM_hK6rM_qY"
