@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "803701688987",
+    "project_id": "meau-unb-627d0",
+    "storage_bucket": "meau-unb-627d0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803701688987:android:827eb6ffeee031814f143e",
+        "android_client_info": {
+          "package_name": "com.vinycius102010.MeauApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaMnR_4VeXFO04unanQAI2mAHNf1RwKAw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
