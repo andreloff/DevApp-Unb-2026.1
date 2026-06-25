@@ -1,7 +1,8 @@
 import { useAuth } from "@/src/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function LoginScreen() {
@@ -22,9 +23,32 @@ export default function LoginScreen() {
       console.log("Login falhou");
     }
   };
+
   const onMenuPress = () => {
     router.back();
   };
+
+  async function enviarNotificacao() {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Olá!",
+        body: "Você apertou o botão.",
+        sound: "default",
+      },
+      trigger: null,
+    });
+  }
+
+  useEffect(() => {
+    async function solicitarPermissao() {
+      const { status } =
+        await Notifications.requestPermissionsAsync();
+
+      console.log(status);
+    }
+
+    solicitarPermissao();
+  }, []);
 
   return (
     <View style={styles.bgContainer}>
@@ -68,7 +92,7 @@ export default function LoginScreen() {
       </Pressable>
 
       <View style={socialMediaStyles.socialLoginContainer}>
-        <Pressable style={socialMediaStyles.facebookLoginButton}>
+        <Pressable style={socialMediaStyles.facebookLoginButton} onPress={enviarNotificacao}>
           <Ionicons name="logo-facebook" size={32} color="#FAFAFA" />
           <Text style={socialMediaStyles.socialButtonText}>
             ENTRAR COM FACEBOOK

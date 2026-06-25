@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { loginUser, registerUser } from "../services/auth";
+import { registrarTokenNotificacao } from "../services/notifications";
 
 export const useAuth = () => {
   const [error, setError] = useState<string>("");
@@ -11,7 +12,13 @@ export const useAuth = () => {
       console.log("Login com sucesso!");
       console.log("Usuário: ", user.user.email);
       setError("");
+
+      registrarTokenNotificacao(user.user.uid).catch((err) => {
+        console.log("Falha ao registrar token de notificação:", err);
+      });
+
       return true;
+      
     } catch (err: unknown) {
       console.log("ERRO no Login!", err);
       if (err instanceof Error) {
