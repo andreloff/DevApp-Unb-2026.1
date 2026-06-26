@@ -8,8 +8,11 @@ import {
   doc,
   GeoPoint,
   getDoc,
+  getDocs,
+  query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
@@ -149,11 +152,31 @@ export default function DetalhesAnimal() {
     }
 
     setEnviandoInteresse(true);
-    setShowAnimation(true);
-
-    let meuNome = usuarioAtual.displayName || "Interessado";
 
     try {
+      const notificacoesRef = collection(db, "notificacoes");
+      const queryExistente = query(
+        notificacoesRef,
+        where("remetenteId", "==", usuarioAtual.uid),
+        where("animalId", "==", id),
+        where("destinatarioId", "==", animal.usuarioId),
+        where("status", "==", "pendente"),
+      );
+      const snapshotExistente = await getDocs(queryExistente);
+
+      if (!snapshotExistente.empty) {
+        Alert.alert(
+          "Interesse já enviado",
+          `Você já demonstrou interesse em ${animal.nome}. Aguarde a resposta do tutor.`,
+        );
+        setEnviandoInteresse(false);
+        return;
+      }
+
+      setShowAnimation(true);
+
+      let meuNome = usuarioAtual.displayName || "Interessado";
+
       const meuDocSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
       if (meuDocSnap.exists()) {
         const meusDados = meuDocSnap.data() as any;
@@ -179,6 +202,7 @@ export default function DetalhesAnimal() {
           `O tutor de ${animal.nome} foi notificado do seu interesse em adotar.`,
         );
       }, 1500);
+      
     } catch (error) {
       console.error("Erro ao enviar interesse: ", error);
       setShowAnimation(false);
