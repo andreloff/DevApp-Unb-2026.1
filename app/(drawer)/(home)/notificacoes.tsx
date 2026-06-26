@@ -30,11 +30,11 @@ type StatusNotificacao = "pendente" | "aceita" | "recusada";
 interface NotificacaoInteresseAdocao {
   id: string;
   tipo: TipoNotificacao;
-  destinatarioId: string; // dono do animal (quem recebe e decide)
-  remetenteId: string; // usuário interessado
-  remetenteNome?: string; // opcional: nome do interessado, pra exibir sem precisar buscar o usuário
+  destinatarioId: string;
+  remetenteId: string;
+  remetenteNome?: string;
   animalId: string;
-  animalNome?: string; // opcional: nome do animal, pra exibir sem precisar buscar o documento
+  animalNome?: string;
   status: StatusNotificacao;
   lida: boolean;
   criadaEm: Timestamp;
@@ -90,8 +90,6 @@ export default function Notificacoes() {
     return () => unsubscribe();
   }, []);
 
-  // Aceita o interesse: cria o chat e atualiza a notificação numa transação,
-  // garantindo que as duas escritas aconteçam juntas (ou nenhuma delas).
   const aceitarNotificacao = async (notificacao: NotificacaoInteresseAdocao) => {
     if (processandoId) return; // evita duplo toque enquanto já está processando
     setProcessandoId(notificacao.id);
@@ -101,7 +99,7 @@ export default function Notificacoes() {
         const notificacaoRef = doc(db, "notificacoes", notificacao.id);
         const chatRef = doc(collection(db, "chats")); // gera um id novo
 
-        // TODO: ajustar este formato quando a estrutura real de chats estiver definida
+        // TODO: ajustar este formato com a estrutura de chats
         transaction.set(chatRef, {
           participantes: [notificacao.destinatarioId, notificacao.remetenteId],
           animalId: notificacao.animalId,
@@ -113,8 +111,7 @@ export default function Notificacoes() {
         });
       });
 
-      // Navega direto pro chat recém-criado, se a tela existir nessa rota.
-      // Ajuste o pathname conforme a rota real do seu chat.
+      // Navegação para rota do chat criado
       // router.push({ pathname: "/(drawer)/(home)/chat", params: { id: chatRef.id } });
     } catch (error) {
       console.log("Erro ao aceitar notificação:", error);
@@ -132,8 +129,6 @@ export default function Notificacoes() {
       await updateDoc(notificacaoRef, {
         status: "recusada",
       });
-      // Não precisa remover manualmente do state: a query já filtra
-      // status == "pendente", então o onSnapshot atualiza a lista sozinho.
     } catch (error) {
       console.log("Erro ao recusar notificação:", error);
     } finally {
