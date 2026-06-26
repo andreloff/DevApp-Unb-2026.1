@@ -4,13 +4,13 @@ import { useRouter } from "expo-router";
 import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { auth, db } from "../../../src/services/firebaseConfig";
 
@@ -34,6 +34,10 @@ export default function MeusAnimais() {
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
+  };
+
+  const onNotificationsPress = () => {
+    router.push("/notificacoes");
   };
 
   const toggleDisponivel = async (animal: Animal) => {
@@ -150,6 +154,9 @@ export default function MeusAnimais() {
           <Ionicons name="menu-outline" size={24} color="#434343" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meus Pets</Text>
+        <TouchableOpacity style={styles.headerButton} onPress={onNotificationsPress}>
+          <Ionicons name="notifications-outline" size={24} color="#434343" />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.headerButton}>
           <Ionicons name="search-outline" size={24} color="#434343" />
         </TouchableOpacity>
