@@ -54,6 +54,7 @@ export default function DetalhesAnimal() {
   };
 
   useEffect(() => {
+
     async function fetchAnimal() {
       if (!id) return;
       const docRef = doc(db, "animais", id as string);
@@ -69,22 +70,36 @@ export default function DetalhesAnimal() {
           );
           if (userSnap.exists()) {
             const userData = userSnap.data() as any;
+            let localizacaoDefinida = false;
+
             if (animalData.coordenadas) {
-              const res = await Location.reverseGeocodeAsync({
-                latitude: animalData.coordenadas.latitude,
-                longitude: animalData.coordenadas.longitude,
-              });
-              if (res && res.length > 0) {
-                const distrito = res[0].district || "";
-                const cidade = res[0].subregion || res[0].city || "";
-                const estado = res[0].region || "";
-                setOwnerLocation(
-                  cidade && estado && distrito
-                    ? `${distrito} - ${cidade} - ${estado}`
-                    : cidade || estado || "Local não mapeado",
-                );
+
+              try {
+                const { status } = await Location.getForegroundPermissionsAsync();
+
+                if (status === "granted") {
+                  const res = await Location.reverseGeocodeAsync({
+                    latitude: animalData.coordenadas.latitude,
+                    longitude: animalData.coordenadas.longitude,
+                  });
+                  if (res && res.length > 0) {
+                    const distrito = res[0].district || "";
+                    const cidade = res[0].subregion || res[0].city || "";
+                    const estado = res[0].region || "";
+                    setOwnerLocation(
+                      cidade && estado && distrito
+                        ? `${distrito} - ${cidade} - ${estado}`
+                        : cidade || estado || "Local não mapeado",
+                    );
+                    localizacaoDefinida = true;
+                  }
+                }
+              } catch (err) {
+                console.log("Erro no reverseGeocode do dono: ", err);
               }
-            } else {
+            }
+
+            if (!localizacaoDefinida) {
               const cidade = userData.cidade || "";
               const estado = userData.estado || "";
               setOwnerLocation(
