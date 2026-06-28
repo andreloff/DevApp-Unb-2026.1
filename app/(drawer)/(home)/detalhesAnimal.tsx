@@ -3,12 +3,16 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  addDoc,
+  collection,
   doc,
   GeoPoint,
   getDoc,
+  getDocs,
+  query,
   serverTimestamp,
-  setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
@@ -39,6 +43,7 @@ export default function DetalhesAnimal() {
   const [ownerPhoto, setOwnerPhoto] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [enviandoInteresse, setEnviandoInteresse] = useState(false);
   useEffect(() => {
     if (mapLat && mapLng && id) {
       handleAtualizarLocalizacao(parseFloat(mapLat), parseFloat(mapLng));
@@ -49,6 +54,7 @@ export default function DetalhesAnimal() {
   };
 
   useEffect(() => {
+
     async function fetchAnimal() {
       if (!id) return;
       const docRef = doc(db, "animais", id as string);
@@ -64,28 +70,36 @@ export default function DetalhesAnimal() {
           );
           if (userSnap.exists()) {
             const userData = userSnap.data() as any;
+            let localizacaoDefinida = false;
+
             if (animalData.coordenadas) {
-              const res = await Location.reverseGeocodeAsync({
-                latitude: animalData.coordenadas.latitude,
-                longitude: animalData.coordenadas.longitude,
-              });
-              if (res && res.length > 0) {
-                // console.log(
-                //   "Resultado do reverse geocode:",
-                //   res[0].subregion,
-                //   res[0].region,
-                //   res[0].district,
-                // );
-                const distrito = res[0].district || "";
-                const cidade = res[0].subregion || res[0].city || "";
-                const estado = res[0].region || "";
-                setOwnerLocation(
-                  cidade && estado && distrito
-                    ? `${distrito} - ${cidade} - ${estado}`
-                    : cidade || estado || "Local não mapeado",
-                );
+
+              try {
+                const { status } = await Location.getForegroundPermissionsAsync();
+
+                if (status === "granted") {
+                  const res = await Location.reverseGeocodeAsync({
+                    latitude: animalData.coordenadas.latitude,
+                    longitude: animalData.coordenadas.longitude,
+                  });
+                  if (res && res.length > 0) {
+                    const distrito = res[0].district || "";
+                    const cidade = res[0].subregion || res[0].city || "";
+                    const estado = res[0].region || "";
+                    setOwnerLocation(
+                      cidade && estado && distrito
+                        ? `${distrito} - ${cidade} - ${estado}`
+                        : cidade || estado || "Local não mapeado",
+                    );
+                    localizacaoDefinida = true;
+                  }
+                }
+              } catch (err) {
+                console.log("Erro no reverseGeocode do dono: ", err);
               }
-            } else {
+            }
+
+            if (!localizacaoDefinida) {
               const cidade = userData.cidade || "";
               const estado = userData.estado || "";
               setOwnerLocation(
@@ -135,7 +149,7 @@ export default function DetalhesAnimal() {
     return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
   };
 
-  const iniciarConversa = async () => {
+  const enviarInteresse = async () => {
     const usuarioAtual = auth.currentUser;
 
     if (!usuarioAtual) {
@@ -152,47 +166,64 @@ export default function DetalhesAnimal() {
       return;
     }
 
-    setShowAnimation(true);
-
-    let meuNome = usuarioAtual.displayName || "Interessado";
-    let minhaFoto = "";
+    setEnviandoInteresse(true);
 
     try {
+      const notificacoesRef = collection(db, "notificacoes");
+      const queryExistente = query(
+        notificacoesRef,
+        where("remetenteId", "==", usuarioAtual.uid),
+        where("animalId", "==", id),
+        where("destinatarioId", "==", animal.usuarioId),
+        where("status", "==", "pendente"),
+      );
+      const snapshotExistente = await getDocs(queryExistente);
+
+      if (!snapshotExistente.empty) {
+        Alert.alert(
+          "Interesse já enviado",
+          `Você já demonstrou interesse em ${animal.nome}. Aguarde a resposta do tutor.`,
+        );
+        setEnviandoInteresse(false);
+        return;
+      }
+
+      setShowAnimation(true);
+
+      let meuNome = usuarioAtual.displayName || "Interessado";
+
       const meuDocSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
       if (meuDocSnap.exists()) {
         const meusDados = meuDocSnap.data() as any;
-        meuNome = meusDados.nome_completo || meusDados.nome_usuario || meuNome;
-        minhaFoto = meusDados.fotoUrl || "";
+        meuNome = meusDados.nome_usuario || meusDados.nome_completo || meuNome;
       }
 
-      const chatId = `${id}_${usuarioAtual.uid}`;
-      const chatRef = doc(db, "conversas", chatId);
-
-      await setDoc(
-        chatRef,
-        {
-          id_animal: id,
-          nome_animal: animal.nome,
-          id_tutor: animal.usuarioId,
-          nome_tutor: ownerName,
-          foto_tutor: ownerPhoto,
-          id_interessado: usuarioAtual.uid,
-          nome_interessado: meuNome,
-          foto_interessado: minhaFoto,
-          ultima_mensagem: "Novo chat iniciado",
-          data_atualizacao: serverTimestamp(),
-        },
-        { merge: true },
-      );
+      await addDoc(collection(db, "notificacoes"), {
+        animalId: id,
+        animalNome: animal.nome,
+        criadaEm: serverTimestamp(),
+        destinatarioId: animal.usuarioId,
+        lida: false,
+        remetenteId: usuarioAtual.uid,
+        remetenteNome: meuNome,
+        status: "pendente",
+        tipo: "interesse_adocao",
+      });
 
       setTimeout(() => {
         setShowAnimation(false);
-        router.push(`/chat/${chatId}`);
-      }, 2000);
+        Alert.alert(
+          "Interesse enviado!",
+          `O tutor de ${animal.nome} foi notificado do seu interesse em adotar.`,
+        );
+      }, 1500);
+      
     } catch (error) {
-      console.error("Erro ao iniciar chat: ", error);
+      console.error("Erro ao enviar interesse: ", error);
       setShowAnimation(false);
-      Alert.alert("Erro", "Não foi possível iniciar o chat no momento.");
+      Alert.alert("Erro", "Não foi possível enviar seu interesse agora.");
+    } finally {
+        setEnviandoInteresse(false);
     }
   };
 
@@ -219,7 +250,7 @@ export default function DetalhesAnimal() {
     }
   };
 
-  const usuarioAtual = auth.currentUser; 
+  const usuarioAtual = auth.currentUser;
 
   return (
     <>
@@ -335,8 +366,14 @@ export default function DetalhesAnimal() {
           )}
 
           {usuarioAtual.uid !== animal.usuarioId && (
-            <TouchableOpacity style={styles.button} onPress={iniciarConversa}>
-              <Text style={styles.buttonText}>PRETENDO ADOTAR</Text>
+            <TouchableOpacity 
+                style={[styles.button, enviandoInteresse && styles.buttonDisabled]}
+                onPress={enviarInteresse}
+                disabled={enviandoInteresse}
+            >
+              <Text style={styles.buttonText}>
+                {enviandoInteresse ? "ENVIANDO..." : "PRETENDO ADOTAR"}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -351,7 +388,7 @@ export default function DetalhesAnimal() {
               loop={true}
               style={{ width: 250, height: 250 }}
             />
-            <Text style={styles.lottieText}>Preparando o chat...</Text>
+            <Text style={styles.lottieText}>Enviando seu interesse...</Text>
           </View>
         </View>
       </Modal>
@@ -410,6 +447,11 @@ const styles = StyleSheet.create({
     marginTop: 28,
     marginBottom: 24,
   },
+
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+
   buttonText: { color: "#434343", fontSize: 12, fontWeight: "500" },
 
   modalBackground: {

@@ -39,12 +39,27 @@ interface Animal {
 export default function Adotar() {
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [temPermissaoLoc, setTemPermissaoLoc] = useState(false);
   const router = useRouter();
   const navigation = useNavigation();
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
+
+  useEffect(() => {
+    const checarPermissaoLocalizacao = async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status === "granted") {
+        setTemPermissaoLoc(true);
+        return;
+      }
+      const { status: novoStatus } =
+        await Location.requestForegroundPermissionsAsync();
+      setTemPermissaoLoc(novoStatus === "granted");
+    };
+    checarPermissaoLocalizacao();
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, "animais"), where("disponivel", "==", true));
@@ -56,9 +71,11 @@ export default function Adotar() {
       });
 
       const loadLocations = async () => {
+
         await Promise.all(
           docs.map(async (item) => {
-            if (item.coordenadas) {
+
+            if (item.coordenadas && temPermissaoLoc) {
               try {
                 const resultado = await Location.reverseGeocodeAsync({
                   latitude: item.coordenadas.latitude,
@@ -105,7 +122,7 @@ export default function Adotar() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [temPermissaoLoc]);
 
   if (loading) {
     return (
