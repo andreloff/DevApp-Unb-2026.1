@@ -1,56 +1,34 @@
+import NotificacaoCard, {
+  NotificacaoInteresseAdocao,
+} from "@/components/notificacaoCard";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import {
-    collection,
-    doc,
-    onSnapshot,
-    orderBy,
-    query,
-    runTransaction,
-    serverTimestamp,
-    Timestamp,
-    updateDoc,
-    where,
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+  serverTimestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
+import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { auth, db } from "../../../src/services/firebaseConfig";
-
-type TipoNotificacao = "interesse_adocao";
-type StatusNotificacao = "pendente" | "aceita" | "recusada";
-
-interface NotificacaoInteresseAdocao {
-  id: string;
-  tipo: TipoNotificacao;
-  destinatarioId: string;
-  remetenteId: string;
-  remetenteNome?: string;
-  animalId: string;
-  animalNome?: string;
-  status: StatusNotificacao;
-  lida: boolean;
-  criadaEm: Timestamp;
-}
-
-// Formata o Timestamp do Firestore em algo legível (ex: "12/06/2026 14:30")
-function formatarData(timestamp?: Timestamp) {
-  if (!timestamp) return "";
-  return timestamp.toDate().toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default function Notificacoes() {
   const [notificacoes, setNotificacoes] = useState<NotificacaoInteresseAdocao[]>([]);
@@ -58,6 +36,7 @@ export default function Notificacoes() {
   const [processandoId, setProcessandoId] = useState<string | null>(null);
   const navigation = useNavigation();
   const router = useRouter();
+  const [showAnimation, setShowAnimation] = useState(false);
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -91,32 +70,74 @@ export default function Notificacoes() {
   }, []);
 
   const aceitarNotificacao = async (notificacao: NotificacaoInteresseAdocao) => {
-    if (processandoId) return; // evita duplo toque enquanto já está processando
+
+    if (processandoId) return; 
+    
     setProcessandoId(notificacao.id);
+    setShowAnimation(true);
 
     try {
+      let nomeTutor = "Tutor";
+      let fotoTutor = "";
+      const tutorSnap = await getDoc(doc(db, "usuarios", notificacao.destinatarioId));
+      
+      if (tutorSnap.exists()) {
+        const tutorData = tutorSnap.data() as any;
+        nomeTutor = tutorData.nome_completo || tutorData.nome_usuario || nomeTutor;
+        fotoTutor = tutorData.fotoUrl || "";
+      }
+
+      let fotoInteressado = "";
+      const interessadoSnap = await getDoc(doc(db, "usuarios", notificacao.remetenteId));
+      if (interessadoSnap.exists()) {
+        const interessadoData = interessadoSnap.data() as any;
+        fotoInteressado = interessadoData.fotoUrl || "";
+      }
+
+      const chatId = `${notificacao.animalId}_${notificacao.remetenteId}`;
+
       await runTransaction(db, async (transaction) => {
         const notificacaoRef = doc(db, "notificacoes", notificacao.id);
-        const chatRef = doc(collection(db, "chats")); // gera um id novo
+        const chatRef = doc(db, "conversas", chatId);
 
-        // TODO: ajustar este formato com a estrutura de chats
-        transaction.set(chatRef, {
-          participantes: [notificacao.destinatarioId, notificacao.remetenteId],
-          animalId: notificacao.animalId,
-          criadoEm: serverTimestamp(),
-        });
+        transaction.set(
+          chatRef,
+          {
+            id_animal: notificacao.animalId,
+            nome_animal: notificacao.animalNome ?? "",
+
+            id_tutor: notificacao.destinatarioId,
+            nome_tutor: nomeTutor,
+            foto_tutor: fotoTutor,
+
+            id_interessado: notificacao.remetenteId,
+            nome_interessado: notificacao.remetenteNome ?? "",
+            foto_interessado: fotoInteressado,
+
+            ultima_mensagem: "Novo chat iniciado",
+            data_atualizacao: serverTimestamp(),
+          },
+          { merge: true },
+        );
 
         transaction.update(notificacaoRef, {
           status: "aceita",
+          lida: true,
         });
       });
 
-      // Navegação para rota do chat criado
-      // router.push({ pathname: "/(drawer)/(home)/chat", params: { id: chatRef.id } });
+      setTimeout(() => {
+        setShowAnimation(false);
+        router.push(`/chat/${chatId}`);
+      }, 1000);
+
     } catch (error) {
       console.log("Erro ao aceitar notificação:", error);
+      setShowAnimation(false);
+      Alert.alert("Erro", "Não foi possível iniciar o chat no momento.");
     } finally {
       setProcessandoId(null);
+      setShowAnimation(false);
     }
   };
 
@@ -128,6 +149,7 @@ export default function Notificacoes() {
       const notificacaoRef = doc(db, "notificacoes", notificacao.id);
       await updateDoc(notificacaoRef, {
         status: "recusada",
+        lida: true,
       });
     } catch (error) {
       console.log("Erro ao recusar notificação:", error);
@@ -142,60 +164,6 @@ export default function Notificacoes() {
     );
   }
 
-  const renderItem = ({ item }: { item: NotificacaoInteresseAdocao }) => {
-    const processandoEsta = processandoId === item.id;
-
-    return (
-      <View style={[styles.card, !item.lida && styles.cardNaoLida]}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardTitleRow}>
-            <Ionicons
-              name="paw-outline"
-              size={20}
-              color="#434343"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.cardTitle}>Interesse em adoção</Text>
-          </View>
-          {!item.lida && <View style={styles.dotNaoLida} />}
-        </View>
-
-        <View style={styles.cardInfo}>
-          <Text style={styles.mensagemText}>
-            {item.remetenteNome ?? "Alguém"} demonstrou interesse em adotar{" "}
-            {item.animalNome ?? "seu animal"}.
-          </Text>
-          <Text style={styles.dataText}>{formatarData(item.criadaEm)}</Text>
-
-          <View style={styles.acoesRow}>
-            <TouchableOpacity
-              style={[styles.botao, styles.botaoRecusar]}
-              disabled={processandoEsta}
-              //onPress={() => recusarNotificacao(item)}
-            >
-              {processandoEsta ? (
-                <ActivityIndicator size="small" color="#434343" />
-              ) : (
-                <Text style={styles.botaoTextoRecusar}>Recusar</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.botao, styles.botaoAceitar]}
-              disabled={processandoEsta}
-              //onPress={() => aceitarNotificacao(item)}
-            >
-              {processandoEsta ? (
-                <ActivityIndicator size="small" color="#434343" />
-              ) : (
-                <Text style={styles.botaoTextoAceitar}>Aceitar</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -207,7 +175,14 @@ export default function Notificacoes() {
       </View>
       <FlatList
         data={notificacoes}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <NotificacaoCard
+            notificacao={item}
+            processando={processandoId === item.id}
+            onAceitar={aceitarNotificacao}
+            onRecusar={recusarNotificacao}
+          />
+        )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 8 }}
         ListEmptyComponent={
@@ -217,6 +192,20 @@ export default function Notificacoes() {
           </View>
         }
       />
+
+      <Modal visible={showAnimation} transparent={true} animationType="fade">
+        <View style={styles.modalBackground}>
+          <View style={styles.lottieContainer}>
+            <LottieView
+              source={require("../../../assets/animations/gato_amor.json")}
+              autoPlay
+              loop={true}
+              style={{ width: 250, height: 250 }}
+            />
+            <Text style={styles.lottieText}>Preparando o chat...</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -241,73 +230,6 @@ const styles = StyleSheet.create({
     padding: 8,
     width: 40,
   },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 4,
-    marginBottom: 8,
-    width: 344,
-    alignSelf: "center",
-    elevation: 2,
-  },
-  cardNaoLida: {
-    borderLeftWidth: 4,
-    borderLeftColor: "#ffd358",
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 8,
-    backgroundColor: "#fee29b",
-  },
-  cardTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    color: "#434343",
-    fontFamily: "Roboto_500Medium",
-    flexShrink: 1,
-  },
-  dotNaoLida: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#e74c3c",
-    marginLeft: 8,
-  },
-  cardInfo: { padding: 12 },
-  mensagemText: { fontSize: 14, color: "#434343" },
-  dataText: { fontSize: 12, color: "#888", marginTop: 6 },
-  acoesRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-    marginTop: 12,
-  },
-  botao: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-  },
-  botaoRecusar: {
-    backgroundColor: "#f0f0f0",
-  },
-  botaoAceitar: {
-    backgroundColor: "#ffd358",
-  },
-  botaoTextoRecusar: {
-    color: "#434343",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  botaoTextoAceitar: {
-    color: "#434343",
-    fontSize: 13,
-    fontWeight: "700",
-  },
   emptyContainer: {
     alignItems: "center",
     marginTop: 60,
@@ -316,5 +238,29 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: 14,
     marginTop: 8,
+  },
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lottieContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  lottieText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#434343",
+    fontWeight: "600",
   },
 });
