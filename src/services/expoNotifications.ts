@@ -1,7 +1,7 @@
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import { arrayUnion, doc, setDoc } from "firebase/firestore";
+import { arrayRemove, arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore";
 import { Platform } from "react-native";
 import { db } from "./firebaseConfig";
 
@@ -83,4 +83,30 @@ async function salvarTokenNoUsuario(uid: string, token: string) {
   );
 
   console.log("Push token associado ao usuário com sucesso.");
+}
+
+export async function removerTokenNotificacao(uid: string) {
+  try {
+
+    // O Expo exige o projectId do EAS para gerar o push token.
+    const myProjectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId;
+
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: myProjectId,
+    });
+    const token = tokenData.data;
+
+    if (!token) return;
+
+    const userRef = doc(db, "usuarios", uid);
+    await updateDoc(userRef, {
+      pushTokens: arrayRemove(token),
+    });
+
+    console.log("Token de notificação removido com sucesso.");
+  } catch (error) {
+    console.error("Erro ao remover token de notificação:", error);
+  }
 }
