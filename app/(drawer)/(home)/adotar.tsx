@@ -47,6 +47,10 @@ export default function Adotar() {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
+  const onNotificationsPress = () => {
+    router.push("/notificacoes");
+  };
+
   useEffect(() => {
     const checarPermissaoLocalizacao = async () => {
       const { status } = await Location.getForegroundPermissionsAsync();
@@ -170,9 +174,11 @@ export default function Adotar() {
           <Ionicons name="menu-outline" size={24} color="#434343" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Adotar</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <Ionicons name="search-outline" size={24} color="#434343" />
-        </TouchableOpacity>
+        <View style={styles.headerRightGroup}>
+          <TouchableOpacity style={styles.headerButton} onPress={onNotificationsPress}>
+            <Ionicons name="notifications-outline" size={24} color="#434343" />
+          </TouchableOpacity>
+        </View>
       </View>
       <FlatList
         data={animais}
@@ -223,4 +229,8 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: "row", gap: 15 },
   infoText: { fontSize: 12, color: "#434343" },
   locationText: { fontSize: 12, color: "#434343", marginTop: 4 },
+  headerRightGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 });

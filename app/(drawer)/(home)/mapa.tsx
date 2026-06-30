@@ -69,6 +69,10 @@ export default function MapaTela() {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
+  const onNotificationsPress = () => {
+    router.push("/notificacoes");
+  };
+
   useEffect(() => {
     async function pegarLocalizacao() {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -148,12 +152,12 @@ export default function MapaTela() {
         <TouchableOpacity onPress={onMenuPress} style={styles.headerButton}>
           <Ionicons name="menu-outline" size={24} color="#434343" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Mapeamento de Pets</Text>
-
-        <TouchableOpacity style={styles.headerButton}>
-          <Ionicons name="search-outline" size={24} color="#ffd358" />
-        </TouchableOpacity>
+        <View style={styles.headerRightGroup}>
+          <TouchableOpacity style={styles.headerButton} onPress={onNotificationsPress}>
+            <Ionicons name="notifications-outline" size={24} color="#434343" />
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.filterBar}>
         <Text style={styles.filterTitle}>Distância máxima:</Text>
@@ -462,5 +466,9 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     fontWeight: "700",
+  },
+  headerRightGroup: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

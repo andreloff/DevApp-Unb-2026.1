@@ -154,12 +154,11 @@ export default function MeusAnimais() {
           <Ionicons name="menu-outline" size={24} color="#434343" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meus Pets</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={onNotificationsPress}>
-          <Ionicons name="notifications-outline" size={24} color="#434343" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton}>
-          <Ionicons name="search-outline" size={24} color="#434343" />
-        </TouchableOpacity>
+        <View style={styles.headerRightGroup}>
+          <TouchableOpacity style={styles.headerButton} onPress={onNotificationsPress}>
+            <Ionicons name="notifications-outline" size={24} color="#434343" />
+          </TouchableOpacity>
+        </View>
       </View>
       <FlatList
         data={animais}
@@ -185,6 +184,12 @@ const styles = StyleSheet.create({
     color: "#434343",
     fontSize: 18,
     fontWeight: "700",
+    flex: 1,
+    marginLeft: 8,
+  },
+  headerRightGroup: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerButton: {
     padding: 8,
