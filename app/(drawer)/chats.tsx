@@ -118,9 +118,6 @@ export default function ListaChatsScreen() {
             contentContainerStyle={styles.listContainer}
           />
           <View style={[styles.footerContainer, { paddingBottom: insets.bottom + 16 }]}>
-            <TouchableOpacity style={styles.btnProcesso}>
-              <Text style={styles.btnProcessoText}>FINALIZAR UM PROCESSO</Text>
-            </TouchableOpacity>
           </View>
         </View>
       )}

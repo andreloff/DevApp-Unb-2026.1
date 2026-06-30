@@ -16,7 +16,7 @@ import {
   runTransaction,
   serverTimestamp,
   updateDoc,
-  where,
+  where
 } from "firebase/firestore";
 import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
@@ -124,10 +124,7 @@ export default function Notificacoes() {
           { merge: true },
         );
 
-        transaction.update(notificacaoRef, {
-          status: "chat_iniciado",
-          lida: true,
-        });
+        transaction.delete(notificacaoRef);
       });
 
       await enviarPushNotificacao(
@@ -203,17 +200,14 @@ export default function Notificacoes() {
           disponivel: false,
         });
 
-        transaction.update(notificacaoRef, {
-          status: "aceita",
-          lida: true,
-        });
+        transaction.delete(notificacaoRef);
 
         conversasComoTutorSnap.forEach((conversaDoc) => {
-          transaction.delete(conversaDoc.ref);
+          transaction.update(conversaDoc.ref, { status: "finalizada" });
         });
 
         conversasComoInteressadoSnap.forEach((conversaDoc) => {
-          transaction.delete(conversaDoc.ref);
+          transaction.update(conversaDoc.ref, { status: "finalizada" });
         });
 
         outrasNotificacoesSnap.forEach((outraNotifDoc) => {
