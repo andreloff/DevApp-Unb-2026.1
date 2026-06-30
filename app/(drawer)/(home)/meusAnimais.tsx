@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { DrawerActions, useIsFocused, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -31,6 +31,7 @@ export default function MeusAnimais() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -54,6 +55,9 @@ export default function MeusAnimais() {
   };
 
   useEffect(() => {
+
+    if (!isFocused)
+      return;
 
     const q = query(
       collection(db, "animais"),
@@ -94,7 +98,7 @@ export default function MeusAnimais() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isFocused]);
 
   if (loading) {
     return (

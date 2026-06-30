@@ -3,7 +3,7 @@ import NotificacaoCard, {
 } from "@/components/notificacaoCard";
 import { enviarPushNotificacao } from "@/src/services/expoNotifications";
 import { Ionicons } from "@expo/vector-icons";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { DrawerActions, useIsFocused, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import {
   collection,
@@ -39,6 +39,7 @@ export default function Notificacoes() {
   const navigation = useNavigation();
   const router = useRouter();
   const [showAnimation, setShowAnimation] = useState(false);
+  const isFocused = useIsFocused();
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -46,9 +47,8 @@ export default function Notificacoes() {
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
-
-    if (!uid) {
-      setLoading(false);
+    if (!uid || !isFocused) {
+      if (!uid) setLoading(false);
       return;
     }
 
@@ -69,7 +69,7 @@ export default function Notificacoes() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isFocused]);
 
   const iniciarChat = async (notificacao: NotificacaoInteresseAdocao) => {
 

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { DrawerActions, useIsFocused, useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import {
@@ -59,6 +59,7 @@ function calcularDistancia(
 export default function MapaTela() {
   const navigation = useNavigation();
   const router = useRouter();
+  const isFocused = useIsFocused();
   const [localizacao, setLocalizacao] = useState<Region | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -101,6 +102,9 @@ export default function MapaTela() {
   }, []);
 
   useEffect(() => {
+    if (!isFocused)
+      return;
+
     const q = query(collection(db, "animais"), where("disponivel", "==", true));
 
     const unsubscribe = onSnapshot(
@@ -129,7 +133,8 @@ export default function MapaTela() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [isFocused]);
+
   const animaisFiltrados = animais.filter((animal) => {
     // se nao tem filtro vai todos
     if (raioMaximo === null) return true;

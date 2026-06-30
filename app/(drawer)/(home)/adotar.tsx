@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { DrawerActions, useIsFocused, useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import {
@@ -42,6 +42,7 @@ export default function Adotar() {
   const [temPermissaoLoc, setTemPermissaoLoc] = useState(false);
   const router = useRouter();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   const onMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -66,6 +67,10 @@ export default function Adotar() {
   }, []);
 
   useEffect(() => {
+    
+    if (!isFocused)
+      return;
+
     const q = query(collection(db, "animais"), where("disponivel", "==", true));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -126,7 +131,7 @@ export default function Adotar() {
     });
 
     return () => unsubscribe();
-  }, [temPermissaoLoc]);
+  }, [temPermissaoLoc, isFocused]);
 
   if (loading) {
     return (
