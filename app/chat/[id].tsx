@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   addDoc,
@@ -50,6 +51,8 @@ export default function ChatScreen() {
   const [finalizarModalVisible, setFinalizarModalVisible] = useState(false);
   const [processando, setProcessando] = useState(false);
 
+  const isFocused = useIsFocused();
+
   const usuarioAtual = auth.currentUser;
 
   useEffect(() => {
@@ -83,7 +86,7 @@ export default function ChatScreen() {
   }, [id, usuarioAtual]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !isFocused) return;
     const chatRef = doc(db, "conversas", id as string);
     const unsubscribe = onSnapshot(chatRef, (snap) => {
       if (snap.exists()) {
@@ -91,10 +94,10 @@ export default function ChatScreen() {
       }
     });
     return () => unsubscribe();
-  }, [id]);
+  }, [id, isFocused]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !isFocused) return;
     const mensagensRef = collection(db, "conversas", id as string, "mensagens");
     const q = query(mensagensRef, orderBy("createdAt", "desc"));
     return onSnapshot(q, (snapshot) => {
@@ -109,7 +112,7 @@ export default function ChatScreen() {
       });
       setMessages(msgs);
     });
-  }, [id]);
+  }, [id, isFocused]);
 
   const handleSend = async () => {
     if (inputText.trim() === "" || !usuarioAtual || chatStatus === "finalizada" || chatStatus === "recusado") return;

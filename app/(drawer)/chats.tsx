@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { collection, onSnapshot, or, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
@@ -12,13 +13,14 @@ export default function ListaChatsScreen() {
   const router = useRouter();
   const usuarioAtual = auth.currentUser;
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
 
   const onNotificationsPress = () => {
     router.push("/notificacoes");
   };
 
   useEffect(() => {
-    if (!usuarioAtual) return;
+    if (!usuarioAtual || !isFocused) return;
 
     const chatsRef = collection(db, 'conversas');
     const q = query(
@@ -41,7 +43,7 @@ export default function ListaChatsScreen() {
     });
 
     return () => unsubscribe();
-  }, [usuarioAtual]);
+  }, [usuarioAtual, isFocused]);
 
   const formatarHora = (timestamp: any) => {
     if (!timestamp) return "";
