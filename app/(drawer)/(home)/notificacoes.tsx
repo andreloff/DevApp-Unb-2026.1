@@ -132,9 +132,9 @@ export default function Notificacoes() {
 
       await enviarPushNotificacao(
         pushTokensInteressado,
-        "Interesse aceito! 🐾",
-        `Seu interesse em adotar ${notificacao.animalNome ?? "o animal"} foi aceito! O chat já está disponível.`,
-        { chatId, tipo: "interesse_aceito" }
+        "Novo chat iniciado! 🐾",
+        `O dono de ${notificacao.animalNome ?? "o animal"} iniciou um chat com você!`,
+        { chatId, tipo: "chat_iniciado" }
       );
 
       setTimeout(() => {
@@ -159,6 +159,14 @@ export default function Notificacoes() {
     try {
       const animalId = notificacao.animalId;
       const uid = auth.currentUser?.uid;
+
+      let pushTokensInteressado: string[] = [];
+      const interessadoSnap = await getDoc(doc(db, "usuarios", notificacao.remetenteId));
+      if (interessadoSnap.exists()) {
+        const interessadoData = interessadoSnap.data() as any;
+        pushTokensInteressado = interessadoData.pushTokens ?? [];
+      }
+
       const conversasComoTutorQuery = query(
         collection(db, "conversas"),
         where("id_animal", "==", animalId),
@@ -214,6 +222,13 @@ export default function Notificacoes() {
           }
         });
       });
+
+      await enviarPushNotificacao(
+        pushTokensInteressado,
+        "Adoção confirmada! 🐾",
+        `Parabéns! ${notificacao.animalNome ?? "O animal"} agora é seu.`,
+        { tipo: "aceita" }
+      );
 
       Alert.alert("Adoção confirmada!", `Parabéns, ${notificacao.animalNome ?? "o animal"} tem um novo lar.`);
     } catch (error) {
