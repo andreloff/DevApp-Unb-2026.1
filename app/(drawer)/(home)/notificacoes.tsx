@@ -1,6 +1,7 @@
 import NotificacaoCard, {
   NotificacaoInteresseAdocao,
 } from "@/components/notificacaoCard";
+import { enviarPushNotificacao } from "@/src/services/expoNotifications";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -88,10 +89,12 @@ export default function Notificacoes() {
       }
 
       let fotoInteressado = "";
+      let pushTokensInteressado: string[] = [];
       const interessadoSnap = await getDoc(doc(db, "usuarios", notificacao.remetenteId));
       if (interessadoSnap.exists()) {
         const interessadoData = interessadoSnap.data() as any;
         fotoInteressado = interessadoData.fotoUrl || "";
+        pushTokensInteressado = interessadoData.pushTokens ?? [];
       }
 
       const chatId = `${notificacao.animalId}_${notificacao.remetenteId}`;
@@ -125,6 +128,13 @@ export default function Notificacoes() {
           lida: true,
         });
       });
+
+      await enviarPushNotificacao(
+        pushTokensInteressado,
+        "Interesse aceito! 🐾",
+        `Seu interesse em adotar ${notificacao.animalNome ?? "o animal"} foi aceito! O chat já está disponível.`,
+        { chatId, tipo: "interesse_aceito" }
+      );
 
       setTimeout(() => {
         setShowAnimation(false);

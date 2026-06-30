@@ -110,3 +110,38 @@ export async function removerTokenNotificacao(uid: string) {
     console.error("Erro ao remover token de notificação:", error);
   }
 }
+
+export async function enviarPushNotificacao(
+  tokens: string[],
+  titulo: string,
+  corpo: string,
+  dados?: Record<string, string>
+): Promise<void> {
+  if (!tokens || tokens.length === 0) {
+    console.log("Nenhum token disponível para envio de push.");
+    return;
+  }
+
+  const mensagens = tokens.map((token) => ({
+    to: token,
+    sound: "default",
+    title: titulo,
+    body: corpo,
+    data: dados ?? {},
+  }));
+
+  try {
+    const response = await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(mensagens),
+    });
+
+    const resultado = await response.json();
+    console.log("Expo Push API respondeu:", JSON.stringify(resultado));
+  } catch (error) {
+    console.error("Erro ao chamar Expo Push API:", error);
+  }
+}
