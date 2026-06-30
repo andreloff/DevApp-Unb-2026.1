@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { loginUser, registerUser } from "../services/auth";
-import { registrarTokenNotificacao } from "../services/notifications";
+import { registrarTokenNotificacao } from "../services/expoNotifications";
 
 export const useAuth = () => {
   const [error, setError] = useState<string>("");

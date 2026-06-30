@@ -1,15 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Timestamp } from "firebase/firestore";
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export type TipoNotificacao = "interesse_adocao";
-export type StatusNotificacao = "pendente" | "aceita" | "recusada";
+export type StatusNotificacao =
+  | "pendente"
+  | "chat_iniciado"
+  | "aceita"
+  | "recusada";
 
 export interface NotificacaoInteresseAdocao {
   id: string;
@@ -39,6 +43,7 @@ function formatarData(timestamp?: Timestamp) {
 interface NotificacaoCardProps {
   notificacao: NotificacaoInteresseAdocao;
   processando: boolean;
+  onChat: (notificacao: NotificacaoInteresseAdocao) => void;
   onAceitar: (notificacao: NotificacaoInteresseAdocao) => void;
   onRecusar: (notificacao: NotificacaoInteresseAdocao) => void;
 }
@@ -49,6 +54,7 @@ interface NotificacaoCardProps {
 export default function NotificacaoCard({
   notificacao,
   processando,
+  onChat,
   onAceitar,
   onRecusar,
 }: NotificacaoCardProps) {
@@ -75,6 +81,17 @@ export default function NotificacaoCard({
         <Text style={styles.dataText}>{formatarData(notificacao.criadaEm)}</Text>
 
         <View style={styles.acoesRow}>
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoChat]}
+            disabled={processando}
+            onPress={() => onChat(notificacao)}
+          >
+            {processando ? (
+              <ActivityIndicator size="small" color="#434343" />
+            ) : (
+              <Text style={styles.botaoTextoChat}>Chat</Text>
+            )}
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.botao, styles.botaoRecusar]}
             disabled={processando}
@@ -146,23 +163,33 @@ const styles = StyleSheet.create({
   dataText: { fontSize: 12, color: "#888", marginTop: 6 },
   acoesRow: {
     flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
+    justifyContent: "space-between",
+    gap: 6,
     marginTop: 12,
   },
   botao: {
+    flex: 1,
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     borderRadius: 4,
+    alignItems: "center",
   },
   botaoRecusar: {
     backgroundColor: "#f0f0f0",
+  },
+  botaoChat: {
+    backgroundColor: "#e3eefc",
   },
   botaoAceitar: {
     backgroundColor: "#ffd358",
   },
   botaoTextoRecusar: {
     color: "#434343",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  botaoTextoChat: {
+    color: "#2f6fb3",
     fontSize: 13,
     fontWeight: "600",
   },

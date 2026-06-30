@@ -1,6 +1,7 @@
 import NotificacaoCard, {
   NotificacaoInteresseAdocao,
 } from "@/components/notificacaoCard";
+import { enviarPushNotificacao } from "@/src/services/expoNotifications";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -8,6 +9,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -69,7 +71,7 @@ export default function Notificacoes() {
     return () => unsubscribe();
   }, []);
 
-  const aceitarNotificacao = async (notificacao: NotificacaoInteresseAdocao) => {
+  const iniciarChat = async (notificacao: NotificacaoInteresseAdocao) => {
 
     if (processandoId) return; 
     
@@ -88,10 +90,12 @@ export default function Notificacoes() {
       }
 
       let fotoInteressado = "";
+      let pushTokensInteressado: string[] = [];
       const interessadoSnap = await getDoc(doc(db, "usuarios", notificacao.remetenteId));
       if (interessadoSnap.exists()) {
         const interessadoData = interessadoSnap.data() as any;
         fotoInteressado = interessadoData.fotoUrl || "";
+        pushTokensInteressado = interessadoData.pushTokens ?? [];
       }
 
       const chatId = `${notificacao.animalId}_${notificacao.remetenteId}`;
@@ -121,10 +125,17 @@ export default function Notificacoes() {
         );
 
         transaction.update(notificacaoRef, {
-          status: "aceita",
+          status: "chat_iniciado",
           lida: true,
         });
       });
+
+      await enviarPushNotificacao(
+        pushTokensInteressado,
+        "Novo chat iniciado! 🐾",
+        `O dono de ${notificacao.animalNome ?? "o animal"} iniciou um chat com você!`,
+        { chatId, tipo: "chat_iniciado" }
+      );
 
       setTimeout(() => {
         setShowAnimation(false);
@@ -138,6 +149,93 @@ export default function Notificacoes() {
     } finally {
       setProcessandoId(null);
       setShowAnimation(false);
+    }
+  };
+
+  const aceitarInteresse = async (notificacao: NotificacaoInteresseAdocao) => {
+    if (processandoId) return;
+    setProcessandoId(notificacao.id);
+
+    try {
+      const animalId = notificacao.animalId;
+      const uid = auth.currentUser?.uid;
+
+      let pushTokensInteressado: string[] = [];
+      const interessadoSnap = await getDoc(doc(db, "usuarios", notificacao.remetenteId));
+      if (interessadoSnap.exists()) {
+        const interessadoData = interessadoSnap.data() as any;
+        pushTokensInteressado = interessadoData.pushTokens ?? [];
+      }
+
+      const conversasComoTutorQuery = query(
+        collection(db, "conversas"),
+        where("id_animal", "==", animalId),
+        where("id_tutor", "==", uid),
+      );
+      const conversasComoTutorSnap = await getDocs(conversasComoTutorQuery);
+  
+      const conversasComoInteressadoQuery = query(
+        collection(db, "conversas"),
+        where("id_animal", "==", animalId),
+        where("id_interessado", "==", uid),
+      );
+      const conversasComoInteressadoSnap = await getDocs(conversasComoInteressadoQuery);
+      
+      const outrasNotificacoesQuery = query(
+        collection(db, "notificacoes"),
+        where("animalId", "==", animalId),
+        where("status", "==", "pendente"),
+        where("destinatarioId", "==", uid),
+      );
+      const outrasNotificacoesSnap = await getDocs(outrasNotificacoesQuery);
+    
+      await runTransaction(db, async (transaction) => {
+        const animalRef = doc(db, "animais", animalId);
+        const notificacaoRef = doc(db, "notificacoes", notificacao.id);
+
+        const animalSnap = await transaction.get(animalRef);
+        if (!animalSnap.exists()) {
+          throw new Error("Animal não encontrado.");
+        }
+
+        transaction.update(animalRef, {
+          usuarioId: notificacao.remetenteId,
+          disponivel: false,
+        });
+
+        transaction.update(notificacaoRef, {
+          status: "aceita",
+          lida: true,
+        });
+
+        conversasComoTutorSnap.forEach((conversaDoc) => {
+          transaction.delete(conversaDoc.ref);
+        });
+
+        conversasComoInteressadoSnap.forEach((conversaDoc) => {
+          transaction.delete(conversaDoc.ref);
+        });
+
+        outrasNotificacoesSnap.forEach((outraNotifDoc) => {
+          if (outraNotifDoc.id !== notificacao.id) {
+            transaction.delete(outraNotifDoc.ref);
+          }
+        });
+      });
+
+      await enviarPushNotificacao(
+        pushTokensInteressado,
+        "Adoção confirmada! 🐾",
+        `Parabéns! ${notificacao.animalNome ?? "O animal"} agora é seu.`,
+        { tipo: "aceita" }
+      );
+
+      Alert.alert("Adoção confirmada!", `Parabéns, ${notificacao.animalNome ?? "o animal"} tem um novo lar.`);
+    } catch (error) {
+      console.log("Erro ao aceitar interesse de adoção:", error);
+      Alert.alert("Erro", "Não foi possível confirmar a adoção no momento.");
+    } finally {
+      setProcessandoId(null);
     }
   };
 
@@ -179,7 +277,8 @@ export default function Notificacoes() {
           <NotificacaoCard
             notificacao={item}
             processando={processandoId === item.id}
-            onAceitar={aceitarNotificacao}
+            onChat={iniciarChat}
+            onAceitar={aceitarInteresse}
             onRecusar={recusarNotificacao}
           />
         )}
