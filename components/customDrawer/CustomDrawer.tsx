@@ -66,6 +66,14 @@ export default function CustomDrawer(props: any) {
     }
   };
 
+  const handleNotificacaoPress = () => {
+    if (auth.currentUser) {
+      props.navigation.navigate("(home)", { screen: "notificacoes" });
+    } else {
+      router.push("/loginScreen");
+    }
+  };
+
   return (
     <DrawerContentScrollView
       {...props}
@@ -108,6 +116,10 @@ export default function CustomDrawer(props: any) {
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
+        <DrawerItem
+          label="Notificações"
+          onPress={handleNotificacaoPress}
+        />
         <DrawerItem label="Cadastrar um pet" onPress={handleCadastroPet} />
         <DrawerItem
           label="Adotar um pet"

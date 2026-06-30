@@ -13,6 +13,10 @@ export default function ListaChatsScreen() {
   const usuarioAtual = auth.currentUser;
   const insets = useSafeAreaInsets();
 
+  const onNotificationsPress = () => {
+    router.push("/notificacoes");
+  };
+
   useEffect(() => {
     if (!usuarioAtual) return;
 
@@ -96,9 +100,11 @@ export default function ListaChatsScreen() {
           <Ionicons name="menu" size={24} color="#434343" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Chat</Text>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name="search" size={24} color="#434343" />
-        </TouchableOpacity>
+        <View style={styles.headerRightGroup}>
+          <TouchableOpacity style={styles.headerIcon} onPress={onNotificationsPress}>
+            <Ionicons name="notifications-outline" size={24} color="#434343" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -137,5 +143,9 @@ const styles = StyleSheet.create({
   timeText: { fontSize: 12, color: '#589b9b' },
   footerContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', backgroundColor: 'transparent' },
   btnProcesso: { width: 232, height: 40, borderWidth: 2, borderColor: '#88c9bf', backgroundColor: '#88c9bf', justifyContent: 'center', alignItems: 'center' },
-  btnProcessoText: { color: '#434343', fontSize: 12 }
+  btnProcessoText: { color: '#434343', fontSize: 12 },
+  headerRightGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 });
