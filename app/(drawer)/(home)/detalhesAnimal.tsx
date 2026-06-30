@@ -28,6 +28,7 @@ import {
   View,
 } from "react-native";
 
+import { enviarPushNotificacao } from "@/src/services/expoNotifications";
 import { auth, db } from "../../../src/services/firebaseConfig";
 
 export default function DetalhesAnimal() {
@@ -188,6 +189,7 @@ export default function DetalhesAnimal() {
         return;
       }
 
+      let pushTokensDestinatario: string[] = [];
       setShowAnimation(true);
 
       let meuNome = usuarioAtual.displayName || "Interessado";
@@ -196,6 +198,12 @@ export default function DetalhesAnimal() {
       if (meuDocSnap.exists()) {
         const meusDados = meuDocSnap.data() as any;
         meuNome = meusDados.nome_usuario || meusDados.nome_completo || meuNome;
+      }
+
+      const destinatarioDocSnap = await getDoc(doc(db, "usuarios", animal.usuarioId));
+      if (destinatarioDocSnap.exists()) {
+        const destinatarioDados = destinatarioDocSnap.data() as any;
+        pushTokensDestinatario = destinatarioDados.pushTokens ?? [];
       }
 
       await addDoc(collection(db, "notificacoes"), {
@@ -209,6 +217,13 @@ export default function DetalhesAnimal() {
         status: "pendente",
         tipo: "interesse_adocao",
       });
+
+      await enviarPushNotificacao(
+        pushTokensDestinatario,
+        "Novo pedido de adoção! 🐾",
+        `${meuNome} deseja adotar ${animal.nome}.`,
+        { tipo: "interesse_adocao" }
+      );
 
       setTimeout(() => {
         setShowAnimation(false);
