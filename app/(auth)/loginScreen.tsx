@@ -3,7 +3,18 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
@@ -41,23 +52,26 @@ export default function LoginScreen() {
 
   useEffect(() => {
     async function solicitarPermissao() {
-      const { status } =
-        await Notifications.requestPermissionsAsync();
-
+      const { status } = await Notifications.requestPermissionsAsync();
       console.log(status);
     }
-
     solicitarPermissao();
   }, []);
 
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }} 
+        bounces={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.bgContainer}>
+            
             <View style={styles.headerContainer}>
               <Pressable style={styles.menuPressable} onPress={onMenuPress}>
                 <Ionicons name="chevron-back" size={32} color="#757575" />
@@ -120,9 +134,10 @@ export default function LoginScreen() {
                 Não tem conta? Cadastre-se
               </Text>
             </Pressable>
+            
           </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
