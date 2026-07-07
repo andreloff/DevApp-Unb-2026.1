@@ -20,6 +20,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   StatusBar,
@@ -188,7 +189,10 @@ export default function ChatScreen() {
   if (loading) return <ActivityIndicator style={{ flex: 1 }} color="#88c9bf" />;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
           <Ionicons name="arrow-back" size={24} color="#434343" />
@@ -273,7 +277,7 @@ export default function ChatScreen() {
                   style={[styles.modalButton, styles.modalButtonAceitar]}
                   onPress={handleAceitarFinalizacao}
                 >
-                  <Text style={styles.modalButtonTextAceitar}>Aceitar</Text>
+                  <Text style={styles.modalButtonTextAceitar}>Accept</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -289,7 +293,7 @@ export default function ChatScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
