@@ -17,7 +17,7 @@ export default function ProfileScreen() {
         <Ionicons name="menu-outline" size={32} color="#88C9BF" />
       </Pressable>
 
-      <Text style={styles.titleText}>Sobre os desenvolvimento do projeto</Text>
+      <Text style={styles.titleText}>Sobre o desenvolvimento do projeto</Text>
 
       <Text style={styles.bodyText}>
         Esse aplicativo foi desenvolvido como parte da disciplina de
