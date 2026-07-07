@@ -15,7 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 import LottieView from "lottie-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -31,6 +31,8 @@ import {
 import { enviarPushNotificacao } from "@/src/services/expoNotifications";
 import { auth, db } from "../../../src/services/firebaseConfig";
 
+const animacaoLike = require("../../../assets/animations/like.json");
+
 export default function DetalhesAnimal() {
   const { id } = useLocalSearchParams();
   const { mapLat, mapLng } = useLocalSearchParams<{
@@ -45,17 +47,21 @@ export default function DetalhesAnimal() {
   const [loading, setLoading] = useState(true);
   const [showAnimation, setShowAnimation] = useState(false);
   const [enviandoInteresse, setEnviandoInteresse] = useState(false);
+
+  const lottieRef = useRef<LottieView>(null);
+  const [favoritado, setFavoritado] = useState(false);
+
   useEffect(() => {
     if (mapLat && mapLng && id) {
       handleAtualizarLocalizacao(parseFloat(mapLat), parseFloat(mapLng));
     }
   }, [mapLat, mapLng]);
+
   const handleBack = () => {
     router.back();
   };
 
   useEffect(() => {
-
     async function fetchAnimal() {
       if (!id) return;
       const docRef = doc(db, "animais", id as string);
@@ -74,7 +80,6 @@ export default function DetalhesAnimal() {
             let localizacaoDefinida = false;
 
             if (animalData.coordenadas) {
-
               try {
                 const { status } = await Location.getForegroundPermissionsAsync();
 
@@ -238,12 +243,17 @@ export default function DetalhesAnimal() {
       setShowAnimation(false);
       Alert.alert("Erro", "Não foi possível enviar seu interesse agora.");
     } finally {
-        setEnviandoInteresse(false);
+      setEnviandoInteresse(false);
     }
+  };
+
+  const handleLike = () => {
+    setFavoritado(!favoritado);
   };
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
   if (!animal) return <Text>Animal não encontrado.</Text>;
+
   const handleAtualizarLocalizacao = async (
     latitude: number,
     longitude: number,
@@ -257,12 +267,29 @@ export default function DetalhesAnimal() {
         coordenadas: novoGeoPoint,
       });
 
-      // Sincroniza o estado local da tela imediatamente
       setAnimal((prev: any) => ({ ...prev, coordenadas: novoGeoPoint }));
       Alert.alert("Sucesso", "Localização do pet atualizada no banco!");
     } catch (e) {
       Alert.alert("Erro", "Não foi possível salvar a localização.");
     }
+  };
+
+  const toggleSelection = (item: string) => {
+    setTemperamento((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
+    );
+  };
+
+  const toggleSaude = (item: string) => {
+    setSaude((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
+    );
+  };
+
+  const toggleNecessidade = (item: string) => {
+    setNecessidades((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    );
   };
 
   const usuarioAtual = auth.currentUser;
@@ -291,8 +318,19 @@ export default function DetalhesAnimal() {
         <View style={styles.content}>
           <View style={styles.detailsHeader}>
             <Text style={styles.name}>{animal.nome}</Text>
-            <TouchableOpacity style={styles.fab}>
-              <Ionicons name="heart-outline" size={28} color="#434343" />
+            
+            <TouchableOpacity style={styles.fab} onPress={handleLike} activeOpacity={0.7}>
+              {favoritado ? (
+                <LottieView
+                  ref={lottieRef}
+                  source={animacaoLike}
+                  autoPlay={true}
+                  loop={false}
+                  style={{ width: 60, height: 60 }}
+                />
+              ) : (
+                <Ionicons name="heart-outline" size={28} color="#434343" />
+              )}
             </TouchableOpacity>
           </View>
 
@@ -380,7 +418,7 @@ export default function DetalhesAnimal() {
             </View>
           )}
 
-          {usuarioAtual.uid !== animal.usuarioId && (
+          {usuarioAtual?.uid !== animal.usuarioId && (
             <TouchableOpacity 
                 style={[styles.button, enviandoInteresse && styles.buttonDisabled]}
                 onPress={enviarInteresse}
@@ -462,13 +500,10 @@ const styles = StyleSheet.create({
     marginTop: 28,
     marginBottom: 24,
   },
-
   buttonDisabled: {
     opacity: 0.5,
   },
-
   buttonText: { color: "#434343", fontSize: 12, fontWeight: "500" },
-
   modalBackground: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
