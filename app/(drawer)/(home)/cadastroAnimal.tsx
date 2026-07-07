@@ -5,13 +5,17 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  TouchableWithoutFeedback,
+  View
 } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
@@ -58,6 +62,7 @@ export default function CadastroAnimal() {
       setLng(parseFloat(params.mapLng));
     }
   }, [params.mapLat, params.mapLng]);
+
   const pickImage = async (useCamera: boolean) => {
     const result = useCamera
       ? await ImagePicker.launchCameraAsync({
@@ -156,9 +161,11 @@ export default function CadastroAnimal() {
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
     );
   };
+  
+  // CORREÇÃO: Função unificada e sem duplicidade
   const toggleNecessidade = (item: string) => {
     setNecessidades((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
     );
   };
 
@@ -195,213 +202,230 @@ export default function CadastroAnimal() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <Pressable style={styles.menuPressable} onPress={onMenuPress}>
-        <Ionicons name="menu-outline" size={32} color="#88C9BF" />
-      </Pressable>
-
-      <View style={styles.infoBox}>
-        <Text style={styles.infoText}>
-          Tem um pet para adoção? Preencha os campos abaixo para cadastrá-lo.
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>NOME DO ANIMAL</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Nome do animal"
-          value={nome}
-          onChangeText={setNome}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>FOTOS DO ANIMAL</Text>
-        <TouchableOpacity
-          style={styles.photoContainer}
-          onPress={() => {
-            Alert.alert("Foto", "Escolha a fonte:", [
-              { text: "Câmera", onPress: () => pickImage(true) },
-              { text: "Galeria", onPress: () => pickImage(false) },
-              { text: "Cancelar", style: "cancel" },
-            ]);
-          }}
-        >
-          {image ? (
-            <Image
-              source={{ uri: image }}
-              style={{ width: "100%", height: 128, borderRadius: 4 }}
-            />
-          ) : (
-            <>
-              <Ionicons name="add-circle-outline" size={40} color="#757575" />
-              <Text style={styles.photoText}>adicionar fotos</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <Selector
-        label="ESPÉCIE"
-        options={["Cachorro", "Gato"]}
-        currentEntry={especie}
-        setEntry={setEspecie}
-      />
-      <Selector
-        label="SEXO"
-        options={["Macho", "Fêmea"]}
-        currentEntry={sexo}
-        setEntry={setSexo}
-      />
-      <Selector
-        label="PORTE"
-        options={["Pequeno", "Médio", "Grande"]}
-        currentEntry={porte}
-        setEntry={setPorte}
-      />
-      <Selector
-        label="IDADE"
-        options={["Filhote", "Adulto", "Idoso"]}
-        currentEntry={idade}
-        setEntry={setIdade}
-      />
-
-      <MultiSelector
-        label="TEMPERAMENTO"
-        options={[
-          "Brincalhão",
-          "Tímido",
-          "Calmo",
-          "Guarda",
-          "Amoroso",
-          "Preguiçoso",
-        ]}
-        currentSelection={temperamento}
-        onToggle={toggleSelection}
-      />
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>SAÚDE</Text>
-        <View style={styles.radioGroup}>
-          {["Vermifugado", "Vacinado", "Castrado", "Doente"].map((item) => (
-            <TouchableOpacity
-              key={item}
-              onPress={() => toggleSaude(item)}
-              style={[
-                styles.radioButton,
-                saude.includes(item) && styles.radioButtonActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.radioText,
-                  saude.includes(item) && styles.radioTextActive,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          editable={saude.includes("Doente")}
-          style={[styles.input, { marginTop: 10 }]}
-          placeholder="Doenças do animal"
-          value={doenca}
-          onChangeText={setDoenca}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>NECESSIDADES DO ANIMAL</Text>
-        <View style={styles.radioGroupV}>
-          {["Alimento", "Auxílio financeiro", "Medicamento"].map((item) => (
-            <TouchableOpacity
-              key={item}
-              onPress={() => toggleNecessidade(item)}
-              style={[
-                styles.radioButton,
-                necessidades.includes(item) && styles.radioButtonActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.radioText,
-                  necessidades.includes(item) && styles.radioTextActive,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          editable={necessidades.includes("Medicamento")}
-          style={[styles.input, { marginTop: 10 }]}
-          placeholder="Nome do medicamento"
-          value={medicamentos}
-          onChangeText={setMedicamentos}
-        />
-        <View style={styles.radioGroup}>
-          <TouchableOpacity
-            onPress={() => toggleNecessidade("Objetos")}
-            style={[
-              styles.radioButton,
-              necessidades.includes("Objetos") && styles.radioButtonActive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.radioText,
-                necessidades.includes("Objetos") && styles.radioTextActive,
-              ]}
-            >
-              Objetos
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TextInput
-          editable={necessidades.includes("Objetos")}
-          style={styles.input}
-          placeholder="Especifique o(s) objeto(s)"
-          value={objetos}
-          onChangeText={setObjetos}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>SOBRE O ANIMAL</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Compartilhe a história do animal"
-          value={sobre}
-          onChangeText={setSobre}
-        />
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>LOCALIZAÇÃO DO ANIMAL</Text>
-        <LocalizacaoSelector
-          hasLocation={
-            lat !== null &&
-            lng !== null &&
-            lat !== undefined &&
-            lng !== undefined
-          }
-          onLocationSelected={(latitude, longitude) => {
-            setLat(latitude);
-            setLng(longitude);
-          }}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={styles.submitButton}
-        onPress={handleCadastrarAnimal}
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.submitButtonText}>COLOCAR PARA ADOÇÃO</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1 }}>
+            
+            <Pressable style={styles.menuPressable} onPress={onMenuPress}>
+              <Ionicons name="menu-outline" size={32} color="#88C9BF" />
+            </Pressable>
+
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                Tem um pet para adoção? Preencha os campos abaixo para cadastrá-lo.
+              </Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>NOME DO ANIMAL</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Nome do animal"
+                value={nome}
+                onChangeText={setNome}
+              />
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>FOTOS DO ANIMAL</Text>
+              <TouchableOpacity
+                style={styles.photoContainer}
+                onPress={() => {
+                  Alert.alert("Foto", "Escolha a fonte:", [
+                    { text: "Câmera", onPress: () => pickImage(true) },
+                    { text: "Galeria", onPress: () => pickImage(false) },
+                    { text: "Cancelar", style: "cancel" },
+                  ]);
+                }}
+              >
+                {image ? (
+                  <Image
+                    source={{ uri: image }}
+                    style={{ width: "100%", height: 128, borderRadius: 4 }}
+                  />
+                ) : (
+                  <>
+                    <Ionicons name="add-circle-outline" size={40} color="#757575" />
+                    <Text style={styles.photoText}>adicionar fotos</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <Selector
+              label="ESPÉCIE"
+              options={["Cachorro", "Gato"]}
+              currentEntry={especie}
+              setEntry={setEspecie}
+            />
+            <Selector
+              label="SEXO"
+              options={["Macho", "Fêmea"]}
+              currentEntry={sexo}
+              setEntry={setSexo}
+            />
+            <Selector
+              label="PORTE"
+              options={["Pequeno", "Médio", "Grande"]}
+              currentEntry={porte}
+              setEntry={setPorte}
+            />
+            <Selector
+              label="IDADE"
+              options={["Filhote", "Adulto", "Idoso"]}
+              currentEntry={idade}
+              setEntry={setIdade}
+            />
+
+            <MultiSelector
+              label="TEMPERAMENTO"
+              options={[
+                "Brincalhão",
+                "Tímido",
+                "Calmo",
+                "Guarda",
+                "Amoroso",
+                "Preguiçoso",
+              ]}
+              currentSelection={temperamento}
+              onToggle={toggleSelection}
+            />
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>SAÚDE</Text>
+              <View style={styles.radioGroup}>
+                {["Vermifugado", "Vacinado", "Castrado", "Doente"].map((item) => (
+                  <TouchableOpacity
+                    key={item}
+                    onPress={() => toggleSaude(item)}
+                    style={[
+                      styles.radioButton,
+                      saude.includes(item) && styles.radioButtonActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.radioText,
+                        saude.includes(item) && styles.radioTextActive,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                editable={saude.includes("Doente")}
+                style={[styles.input, { marginTop: 10 }]}
+                placeholder="Doenças do animal"
+                value={doenca}
+                onChangeText={setDoenca}
+              />
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>NECESSIDADES DO ANIMAL</Text>
+              <View style={styles.radioGroupV}>
+                {["Alimento", "Auxílio financeiro", "Medicamento"].map((item) => (
+                  <TouchableOpacity
+                    key={item}
+                    onPress={() => toggleNecessidade(item)}
+                    style={[
+                      styles.radioButton,
+                      necessidades.includes(item) && styles.radioButtonActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.radioText,
+                        necessidades.includes(item) && styles.radioTextActive,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                editable={necessidades.includes("Medicamento")}
+                style={[styles.input, { marginTop: 10 }]}
+                placeholder="Nome do medicamento"
+                value={medicamentos}
+                onChangeText={setMedicamentos}
+              />
+              <View style={styles.radioGroup}>
+                <TouchableOpacity
+                  onPress={() => toggleNecessidade("Objetos")}
+                  style={[
+                    styles.radioButton,
+                    necessidades.includes("Objetos") && styles.radioButtonActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.radioText,
+                      necessidades.includes("Objetos") && styles.radioTextActive,
+                    ]}
+                  >
+                    Objetos
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                editable={necessidades.includes("Objetos")}
+                style={styles.input}
+                placeholder="Especifique o(s) objeto(s)"
+                value={objetos}
+                onChangeText={setObjetos}
+              />
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>SOBRE O ANIMAL</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Compartilhe a história do animal"
+                value={sobre}
+                onChangeText={setSobre}
+              />
+            </View>
+            
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>LOCALIZAÇÃO DO ANIMAL</Text>
+              <LocalizacaoSelector
+                hasLocation={
+                  lat !== null &&
+                  lng !== null &&
+                  lat !== undefined &&
+                  lng !== undefined
+                }
+                onLocationSelected={(latitude, longitude) => {
+                  setLat(latitude);
+                  setLng(longitude);
+                }}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleCadastrarAnimal}
+            >
+              <Text style={styles.submitButtonText}>COLOCAR PARA ADOÇÃO</Text>
+            </TouchableOpacity>
+
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

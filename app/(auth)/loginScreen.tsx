@@ -2,8 +2,19 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
@@ -41,80 +52,93 @@ export default function LoginScreen() {
 
   useEffect(() => {
     async function solicitarPermissao() {
-      const { status } =
-        await Notifications.requestPermissionsAsync();
-
+      const { status } = await Notifications.requestPermissionsAsync();
       console.log(status);
     }
-
     solicitarPermissao();
   }, []);
 
   return (
-    <View style={styles.bgContainer}>
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.menuPressable} onPress={onMenuPress}>
-          <Ionicons name="chevron-back" size={32} color="#757575" />
-        </Pressable>
-        <Text style={styles.titleText}>Login</Text>
-      </View>
-
-      <View style={inputFieldStyles.inputFieldContainer}>
-        <TextInput
-          style={inputFieldStyles.inputText}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <View style={inputFieldStyles.passwordFieldContainer}>
-          <TextInput
-            style={inputFieldStyles.passwordInput}
-            placeholder="Senha"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-          />
-          <Pressable
-            style={inputFieldStyles.passwordToggle}
-            onPress={() => setShowPassword((prev) => !prev)}
-          >
-            <Ionicons
-              name={showPassword ? "eye-off-outline" : "eye-outline"}
-              size={24}
-              color="#757575"
-            />
-          </Pressable>
-        </View>
-      </View>
-
-      <Pressable style={styles.bodyButton} onPress={onLoginPress}>
-        <Text style={styles.buttonText}>ENTRAR</Text>
-      </Pressable>
-
-      <View style={socialMediaStyles.socialLoginContainer}>
-        <Pressable style={socialMediaStyles.facebookLoginButton} onPress={enviarNotificacao}>
-          <Ionicons name="logo-facebook" size={32} color="#FAFAFA" />
-          <Text style={socialMediaStyles.socialButtonText}>
-            ENTRAR COM FACEBOOK
-          </Text>
-        </Pressable>
-        <Pressable style={socialMediaStyles.googleLoginButton}>
-          <Ionicons name="logo-google" size={32} color="#FAFAFA" />
-          <Text style={socialMediaStyles.socialButtonText}>
-            ENTRAR COM GOOGLE
-          </Text>
-        </Pressable>
-      </View>
-
-      <Pressable
-        style={{ marginTop: 40, marginBottom: 20 }}
-        onPress={() => router.push("/cadastro_pessoal")}
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }} 
+        bounces={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={{ color: "#88c9bf", fontWeight: "bold", fontSize: 16 }}>
-          Não tem conta? Cadastre-se
-        </Text>
-      </Pressable>
-    </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.bgContainer}>
+            
+            <View style={styles.headerContainer}>
+              <Pressable style={styles.menuPressable} onPress={onMenuPress}>
+                <Ionicons name="chevron-back" size={32} color="#757575" />
+              </Pressable>
+              <Text style={styles.titleText}>Login</Text>
+            </View>
+
+            <View style={inputFieldStyles.inputFieldContainer}>
+              <TextInput
+                style={inputFieldStyles.inputText}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+              />
+              <View style={inputFieldStyles.passwordFieldContainer}>
+                <TextInput
+                  style={inputFieldStyles.passwordInput}
+                  placeholder="Senha"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <Pressable
+                  style={inputFieldStyles.passwordToggle}
+                  onPress={() => setShowPassword((prev) => !prev)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={24}
+                    color="#757575"
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            <Pressable style={styles.bodyButton} onPress={onLoginPress}>
+              <Text style={styles.buttonText}>ENTRAR</Text>
+            </Pressable>
+
+            <View style={socialMediaStyles.socialLoginContainer}>
+              <Pressable style={socialMediaStyles.facebookLoginButton} onPress={enviarNotificacao}>
+                <Ionicons name="logo-facebook" size={32} color="#FAFAFA" />
+                <Text style={socialMediaStyles.socialButtonText}>
+                  ENTRAR COM FACEBOOK
+                </Text>
+              </Pressable>
+              <Pressable style={socialMediaStyles.googleLoginButton}>
+                <Ionicons name="logo-google" size={32} color="#FAFAFA" />
+                <Text style={socialMediaStyles.socialButtonText}>
+                  ENTRAR COM GOOGLE
+                </Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              style={{ marginTop: 40, marginBottom: 20 }}
+              onPress={() => router.push("/cadastro_pessoal")}
+            >
+              <Text style={{ color: "#88c9bf", fontWeight: "bold", fontSize: 16 }}>
+                Não tem conta? Cadastre-se
+              </Text>
+            </Pressable>
+            
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -124,7 +148,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FAFAFA",
   },
-
   headerContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -132,21 +155,18 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 60,
   },
-
   menuPressable: {
     paddingTop: 14,
     paddingLeft: 14,
     width: 40,
     height: 40,
   },
-
   titleText: {
     paddingTop: 14,
     paddingLeft: 40,
     fontSize: 24,
     color: "#000000",
   },
-
   bodyButton: {
     width: 300,
     height: 60,
@@ -156,7 +176,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#88C9BF",
     elevation: 4,
   },
-
   buttonText: {
     textAlign: "center",
     margin: 20,
@@ -171,7 +190,6 @@ const inputFieldStyles = StyleSheet.create({
     width: "100%",
     paddingTop: 40,
   },
-
   inputText: {
     width: 340,
     height: 60,
@@ -182,7 +200,6 @@ const inputFieldStyles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
   },
-
   passwordFieldContainer: {
     width: 340,
     height: 60,
@@ -193,13 +210,11 @@ const inputFieldStyles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 14,
   },
-
   passwordInput: {
     flex: 1,
     height: "100%",
     fontSize: 16,
   },
-
   passwordToggle: {
     padding: 8,
     justifyContent: "center",
@@ -213,7 +228,6 @@ const socialMediaStyles = StyleSheet.create({
     width: "100%",
     paddingTop: 60,
   },
-
   facebookLoginButton: {
     flexDirection: "row",
     width: 300,
@@ -225,7 +239,6 @@ const socialMediaStyles = StyleSheet.create({
     backgroundColor: "#0a1c61",
     elevation: 4,
   },
-
   googleLoginButton: {
     flexDirection: "row",
     width: 300,
@@ -237,7 +250,6 @@ const socialMediaStyles = StyleSheet.create({
     backgroundColor: "#ad2f2f",
     elevation: 4,
   },
-
   socialButtonText: {
     textAlign: "center",
     margin: 20,

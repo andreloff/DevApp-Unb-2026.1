@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.vinycius102010.MeauApp",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#F5A900",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

@@ -16,6 +16,7 @@ import {
   updateDoc,
   where
 } from "firebase/firestore";
+import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -27,10 +28,16 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from "react-native";
-import { Bubble, GiftedChat } from "react-native-gifted-chat";
+import { Bubble, GiftedChat, Message } from "react-native-gifted-chat";
 import { auth, db } from "../../src/services/firebaseConfig";
+
+const animacaoAviao = require("../../assets/animations/aviao.json");
+const animacaoCachorro = require("../../assets/animations/cachorro.json");
+
+const ALTURA_HEADER = Platform.OS === "android" ? 60 + (StatusBar.currentHeight || 0) : 95;
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
@@ -51,8 +58,11 @@ export default function ChatScreen() {
   const [finalizarModalVisible, setFinalizarModalVisible] = useState(false);
   const [processando, setProcessando] = useState(false);
 
-  const isFocused = useIsFocused();
+  const [animacaoAtiva, setAnimacaoAtiva] = useState<"cachorro" | "aviao" | null>(null);
+  const [selectedMessageForReaction, setSelectedMessageForReaction] = useState<any>(null);
+  const [reactionMenuVisible, setReactionMenuVisible] = useState(false);
 
+  const isFocused = useIsFocused();
   const usuarioAtual = auth.currentUser;
 
   useEffect(() => {
@@ -86,7 +96,7 @@ export default function ChatScreen() {
   }, [id, usuarioAtual]);
 
   useEffect(() => {
-    if (!id || !isFocused) return;
+    if (!id || !isFocused || !usuarioAtual) return;
     const chatRef = doc(db, "conversas", id as string);
     const unsubscribe = onSnapshot(chatRef, (snap) => {
       if (snap.exists()) {
@@ -94,10 +104,10 @@ export default function ChatScreen() {
       }
     });
     return () => unsubscribe();
-  }, [id, isFocused]);
+  }, [id, isFocused, usuarioAtual]);
 
   useEffect(() => {
-    if (!id || !isFocused) return;
+    if (!id || !isFocused || !usuarioAtual) return;
     const mensagensRef = collection(db, "conversas", id as string, "mensagens");
     const q = query(mensagensRef, orderBy("createdAt", "desc"));
     return onSnapshot(q, (snapshot) => {
@@ -108,16 +118,24 @@ export default function ChatScreen() {
           text: data.text,
           createdAt: data.createdAt?.toDate(),
           user: { _id: data.user?._id, name: data.user?.name, avatar: data.user?.avatar },
+          reacao: data.reacao || null,
         };
       });
       setMessages(msgs);
     });
-  }, [id, isFocused]);
+  }, [id, isFocused, usuarioAtual]);
 
   const handleSend = async () => {
     if (inputText.trim() === "" || !usuarioAtual || chatStatus === "finalizada" || chatStatus === "recusado") return;
     const text = inputText;
     setInputText("");
+
+    if (usuarioAtual.uid === idInteressado) {
+      setAnimacaoAtiva("cachorro");
+    } else if (usuarioAtual.uid === idTutor) {
+      setAnimacaoAtiva("aviao");
+    }
+
     const mensagensRef = collection(db, "conversas", id as string, "mensagens");
     await addDoc(mensagensRef, {
       text,
@@ -128,6 +146,21 @@ export default function ChatScreen() {
       ultima_mensagem: text,
       data_atualizacao: serverTimestamp(),
     });
+  };
+
+  const handleAddReaction = async (emoji: string) => {
+    if (!selectedMessageForReaction || !id) return;
+    try {
+      const msgRef = doc(db, "conversas", id as string, "mensagens", selectedMessageForReaction._id);
+      await updateDoc(msgRef, {
+        reacao: emoji
+      });
+    } catch (e) {
+      console.error("Erro ao salvar reação no Firebase: ", e);
+    } finally {
+      setReactionMenuVisible(false);
+      setSelectedMessageForReaction(null);
+    }
   };
 
   const handleAceitarFinalizacao = async () => {
@@ -185,11 +218,38 @@ export default function ChatScreen() {
     }
   };
 
+  const renderInputToolbar = () => {
+    if (chatStatus === "finalizada" || chatStatus === "recusado") {
+      return (
+        <View style={styles.finalizadaContainer}>
+          <Ionicons name="lock-closed-outline" size={16} color="#9a9a9a" />
+          <Text style={styles.finalizadaText}>
+            {chatStatus === "finalizada" ? "Conversa finalizada" : "Pedido recusado"}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.manualInputContainer}>
+        <TextInput 
+          style={styles.input} 
+          placeholder="Mensagem..." 
+          value={inputText} 
+          onChangeText={setInputText} 
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+          <Ionicons name="send" size={16} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   if (loading) return <ActivityIndicator style={{ flex: 1 }} color="#88c9bf" />;
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { height: ALTURA_HEADER }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
           <Ionicons name="arrow-back" size={24} color="#434343" />
         </TouchableOpacity>
@@ -214,37 +274,94 @@ export default function ChatScreen() {
       <GiftedChat
         messages={messages}
         user={{ _id: usuarioAtual?.uid || "" }}
-        renderInputToolbar={() => <View />}
+        renderInputToolbar={renderInputToolbar}
         messagesContainerStyle={{ backgroundColor: "#fafafa" }}
+        isKeyboardInternallyHandled={true}
+        renderMessage={(props) => (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onLongPress={() => {
+              setSelectedMessageForReaction(props.currentMessage);
+              setReactionMenuVisible(true);
+            }}
+          >
+            <Message {...props} />
+          </TouchableOpacity>
+        )}
         renderBubble={(props) => (
           <Bubble
             {...props}
             wrapperStyle={{ right: { backgroundColor: "#5fb3a5" }, left: { backgroundColor: "#fff" } }}
             textStyle={{ right: { color: "#fff" } }}
+            containerStyle={{
+              right: { marginBottom: props.currentMessage.reacao ? 12 : 0 },
+              left: { marginBottom: props.currentMessage.reacao ? 12 : 0 },
+            }}
+            renderFooter={(bubbleProps) => {
+              if (bubbleProps.currentMessage.reacao) {
+                return (
+                  <View style={[styles.reactionBadge, bubbleProps.position === 'right' ? styles.reactionRight : styles.reactionLeft]}>
+                    <Text style={{ fontSize: 13 }}>{bubbleProps.currentMessage.reacao}</Text>
+                  </View>
+                );
+              }
+              return null;
+            }}
           />
         )}
       />
 
-      {chatStatus === "finalizada" || chatStatus === "recusado" ? (
-        <View style={styles.finalizadaContainer}>
-          <Ionicons name="lock-closed-outline" size={16} color="#9a9a9a" />
-          <Text style={styles.finalizadaText}>
-            {chatStatus === "finalizada" ? "Conversa finalizada" : "Pedido recusado"}
-          </Text>
+      <Modal
+        visible={reactionMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setReactionMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setReactionMenuVisible(false)}>
+          <View style={styles.reactionModalOverlay}>
+            <View style={styles.reactionMenuBar}>
+              {["👍", "❤️", "😂", "😮", "😢"].map((emoji) => (
+                <TouchableOpacity 
+                  key={emoji} 
+                  style={styles.reactionEmojiButton}
+                  onPress={() => handleAddReaction(emoji)}
+                >
+                  <Text style={styles.reactionEmojiText}>{emoji}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+        visible={animacaoAtiva !== null}
+        transparent
+        animationType="none"
+        pointerEvents="none"
+      >
+        <View style={styles.lottieModalContainer} pointerEvents="none">
+          {animacaoAtiva === "cachorro" && (
+            <LottieView
+              source={animacaoCachorro}
+              autoPlay
+              loop={false}
+              speed={0.6}
+              style={styles.lottieCachorroHorizontal}
+              onAnimationFinish={() => setAnimacaoAtiva(null)}
+            />
+          )}
+          {animacaoAtiva === "aviao" && (
+            <LottieView
+              source={animacaoAviao}
+              autoPlay
+              loop={false}
+              style={styles.lottieAviaoDoBotao}
+              onAnimationFinish={() => setAnimacaoAtiva(null)}
+            />
+          )}
         </View>
-      ) : (
-        <View style={styles.manualInputContainer}>
-          <TextInput 
-            style={styles.input} 
-            placeholder="Mensagem..." 
-            value={inputText} 
-            onChangeText={setInputText} 
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-            <Ionicons name="send" size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      )}
+      </Modal>
 
       <Modal
         visible={finalizarModalVisible}
@@ -297,15 +414,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fafafa" },
   header: {
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 45,
-    height: Platform.OS === "android" ? 60 + (StatusBar.currentHeight || 0) : 95,
     backgroundColor: "#cfe9e5", flexDirection: "row", alignItems: "center", paddingHorizontal: 15
   },
   headerAvatar: { width: 36, height: 36, borderRadius: 18, marginLeft: 10 },
   headerAvatarPlaceholder: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#e0e0e0", justifyContent: "center", alignItems: "center", marginLeft: 10 },
   headerTitle: { fontSize: 18, fontWeight: "bold", marginLeft: 10, color: "#434343", flex: 1 },
   iconButton: { padding: 5 },
-  manualInputContainer: { flexDirection: 'row', padding: 10, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e0e0e0', alignItems: 'center', paddingBottom: Platform.OS === 'android' ? 20 : 10 },
-  input: { flex: 1, height: 40, backgroundColor: '#f0f0f0', borderRadius: 20, paddingHorizontal: 15, marginRight: 10 },
+  manualInputContainer: { 
+    flexDirection: 'row', 
+    padding: 10, 
+    backgroundColor: '#fff', 
+    borderTopWidth: 1, 
+    borderTopColor: '#e0e0e0', 
+    alignItems: 'center', 
+    width: '100%',
+    paddingBottom: Platform.OS === 'android' ? 20 : 10,
+  },
+  input: { flex: 1, height: 40, backgroundColor: '#f0f0f0', borderRadius: 20, paddingHorizontal: 15, marginRight: 10, color: '#434343' },
   sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#88c9bf", justifyContent: "center", alignItems: "center" },
   finalizadaContainer: {
     flexDirection: "row",
@@ -316,6 +441,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
+    width: '100%',
+    paddingBottom: Platform.OS === 'android' ? 20 : 14
   },
   finalizadaText: { color: "#9a9a9a", fontSize: 13, fontWeight: "600" },
   finalizarButton: {
@@ -325,6 +452,65 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   finalizarButtonText: { color: "#fff", fontSize: 13, fontWeight: "600" },
+  
+  reactionBadge: {
+    position: 'absolute',
+    bottom: -12,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 1.5,
+    zIndex: 9999
+  },
+  reactionRight: { right: 10 },
+  reactionLeft: { left: 10 },
+
+  reactionModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  reactionMenuBar: {
+    flexDirection: "row",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 30,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    gap: 12,
+  },
+  reactionEmojiButton: { padding: 4 },
+  reactionEmojiText: { fontSize: 26 },
+
+  lottieModalContainer: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+  lottieCachorroHorizontal: {
+    position: "absolute",
+    bottom: Platform.OS === "android" ? 75 : 60,
+    left: 0,
+    right: 0,
+    height: 140,
+  },
+  lottieAviaoDoBotao: {
+    position: "absolute",
+    bottom: Platform.OS === "android" ? 15 : 0,
+    right: -20,
+    width: 220,
+    height: 220,
+  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",

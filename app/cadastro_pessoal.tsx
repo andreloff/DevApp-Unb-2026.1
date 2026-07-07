@@ -3,8 +3,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { useState } from 'react';
-import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 import { auth, db } from '../src/services/firebaseConfig';
 
 export default function CadastroPessoal() {
@@ -52,7 +66,7 @@ export default function CadastroPessoal() {
         idade: idade,
         email: email,
         estado: estado,
-        cidade: cidade,
+        cidade: cidade,  
         endereco: endereco,
         telefone: telefone,
         nome_usuario: usuario,
@@ -87,61 +101,77 @@ export default function CadastroPessoal() {
   const isIdadeValid = idade.length > 0 && parseInt(idade) > 0;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <MaterialIcons name="menu" size={24} color="#434343" style={{marginRight: 16}} />
-        <Text style={styles.headerTitle}>Cadastro Pessoal</Text>
-      </View>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1 }}>
+            
+            <View style={styles.header}>
+              <MaterialIcons name="menu" size={24} color="#434343" style={{ marginRight: 16 }} />
+              <Text style={styles.headerTitle}>Cadastro Pessoal</Text>
+            </View>
 
-      <View style={styles.infoBox}>
-        <Text style={styles.infoText}>
-          As informações preenchidas serão divulgadas apenas para a pessoa com a qual você realizar o processo de adoção e/ou apadrinhamento, após a formalização do processo.
-        </Text>
-      </View>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                As informações preenchidas serão divulgadas apenas para a pessoa com a qual você realizar o processo de adoção e/ou apadrinhamento, após a formalização do processo.
+              </Text>
+            </View>
 
-      <View style={styles.form}>
-        <Text style={styles.sectionLabel}>INFORMAÇÕES PESSOAIS</Text>
-        
-        <InputField placeholder="Nome completo" value={nome} onChangeText={setNome} isValid={nome.trim().length >= 3} />
-        <InputField placeholder="Idade" value={idade} onChangeText={setIdade} keyboardType="numeric" isValid={isIdadeValid} />
-        <InputField placeholder="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" isValid={isEmailValid} />
-        <InputField placeholder="Estado" value={estado} onChangeText={setEstado} isValid={estado.trim().length >= 2} />
-        <InputField placeholder="Cidade" value={cidade} onChangeText={setCidade} isValid={cidade.trim().length >= 3} />
-        <InputField placeholder="Endereço" value={endereco} onChangeText={setEndereco} isValid={endereco.trim().length >= 5} />
-        <InputField placeholder="Telefone" value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" isValid={isTelefoneValid} />
+            <View style={styles.form}>
+              <Text style={styles.sectionLabel}>INFORMAÇÕES PESSOAIS</Text>
+              
+              <InputField placeholder="Nome completo" value={nome} onChangeText={setNome} isValid={nome.trim().length >= 3} />
+              <InputField placeholder="Idade" value={idade} onChangeText={setIdade} keyboardType="numeric" isValid={isIdadeValid} />
+              <InputField placeholder="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" isValid={isEmailValid} />
+              <InputField placeholder="Estado" value={estado} onChangeText={setEstado} isValid={estado.trim().length >= 2} />
+              <InputField placeholder="Cidade" value={cidade} onChangeText={setCidade} isValid={cidade.trim().length >= 3} />
+              <InputField placeholder="Endereço" value={endereco} onChangeText={setEndereco} isValid={endereco.trim().length >= 5} />
+              <InputField placeholder="Telefone" value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" isValid={isTelefoneValid} />
 
-        <Text style={styles.sectionLabel}>INFORMAÇÕES DE PERFIL</Text>
-        <InputField placeholder="Nome de usuário" value={usuario} onChangeText={setUsuario} isValid={usuario.trim().length >= 3} />
-        <InputField placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry={true} isValid={isSenhaValid} />
-        <InputField placeholder="Confirmação de senha" value={confirmaSenha} onChangeText={setConfirmaSenha} secureTextEntry={true} isValid={isConfirmaSenhaValid} />
+              <Text style={styles.sectionLabel}>INFORMAÇÕES DE PERFIL</Text>
+              <InputField placeholder="Nome de usuário" value={usuario} onChangeText={setUsuario} isValid={usuario.trim().length >= 3} />
+              <InputField placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry={true} isValid={isSenhaValid} />
+              <InputField placeholder="Confirmação de senha" value={confirmaSenha} onChangeText={setConfirmaSenha} secureTextEntry={true} isValid={isConfirmaSenhaValid} />
 
-        <Text style={styles.sectionLabel}>FOTO DE PERFIL</Text>
-        <TouchableOpacity 
-          style={styles.photoSquare} 
-          onPress={() => {
-            Alert.alert("Foto", "Escolha a fonte:", [
-              { text: "Câmera", onPress: () => pickImage(true) },
-              { text: "Galeria", onPress: () => pickImage(false) },
-              { text: "Cancelar", style: "cancel" }
-            ]);
-          }}
-        >
-          {image ? (
-            <Image source={{ uri: image }} style={{ width: 128, height: 128, borderRadius: 2 }} />
-          ) : (
-            <>
-              <MaterialIcons name="add-circle-outline" size={32} color="#757575" />
-              <Text style={styles.photoText}>adicionar foto</Text>
-            </>
-          )}
-        </TouchableOpacity>
+              <Text style={styles.sectionLabel}>FOTO DE PERFIL</Text>
+              <TouchableOpacity 
+                style={styles.photoSquare} 
+                onPress={() => {
+                  Alert.alert("Foto", "Escolha a fonte:", [
+                    { text: "Câmera", onPress: () => pickImage(true) },
+                    { text: "Galeria", onPress: () => pickImage(false) },
+                    { text: "Cancelar", style: "cancel" }
+                  ]);
+                }}
+              >
+                {image ? (
+                  <Image source={{ uri: image }} style={{ width: 128, height: 128, borderRadius: 2 }} />
+                ) : (
+                  <>
+                    <MaterialIcons name="add-circle-outline" size={32} color="#757575" />
+                    <Text style={styles.photoText}>adicionar foto</Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnFinalizar} onPress={realizarCadastro}>
-          <Text style={styles.btnText}>FAZER CADASTRO</Text>
-        </TouchableOpacity>
-      </View>
+              <TouchableOpacity style={styles.btnFinalizar} onPress={realizarCadastro}>
+                <Text style={styles.btnText}>FAZER CADASTRO</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
       <StatusBar barStyle="dark-content" backgroundColor="#88c9bf" />
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
