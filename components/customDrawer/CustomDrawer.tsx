@@ -96,10 +96,6 @@ export default function CustomDrawer(props: any) {
         />
         <DrawerItem label="Meus Pets" onPress={handleMeusPets} />
         <DrawerItem
-          label="Favoritos"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
           label="Chat"
           onPress={() => {
             if (auth.currentUser) {
