@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   headerIcon: { padding: 8 },
   listContainer: { paddingBottom: 80 },
   chatCard: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 0.8, borderBottomColor: '#e6e7e8' },
-  avatar: { width: 48, height: 48, borderRadius: 24, marginRight: 16 }, // Imagem real do layout 48x48
+  avatar: { width: 48, height: 48, borderRadius: 24, marginRight: 16 }, 
   avatarPlaceholder: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#f1f2f2', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
   chatInfo: { flex: 1 },
   chatTitle: { fontSize: 12, color: '#589b9b', fontWeight: 'bold', marginBottom: 4 },
