@@ -149,10 +149,6 @@ export default function CustomDrawer(props: any) {
           label="Legislação"
           onPress={() => props.navigation.navigate("(profile)")}
         />
-        <DrawerItem
-          label="Termo de adoção"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
       </DrawerSection>
 
       <DrawerSection
