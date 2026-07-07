@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 
   titleText: {
     textAlign: "center",
-    fontSize: 100,
+    fontSize: 40,
     color: "#FFD358",
   },
 
