@@ -133,17 +133,6 @@ export default function CustomDrawer(props: any) {
       </DrawerSection>
 
       <DrawerSection
-        icon={{ name: "information-circle-outline" }}
-        title="Informações"
-        containerStyle={styles.infoSectionContainer}
-      >
-        <DrawerItem
-          label="Dicas"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-      </DrawerSection>
-
-      <DrawerSection
         icon={{ name: "settings-outline" }}
         title="Configurações"
         containerStyle={styles.configSectionContainer}
