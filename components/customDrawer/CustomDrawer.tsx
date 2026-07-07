@@ -116,10 +116,7 @@ export default function CustomDrawer(props: any) {
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
-        <DrawerItem
-          label="Notificações"
-          onPress={handleNotificacaoPress}
-        />
+        <DrawerItem label="Notificações" onPress={handleNotificacaoPress} />
         <DrawerItem label="Cadastrar um pet" onPress={handleCadastroPet} />
         <DrawerItem
           label="Adotar um pet"
@@ -135,10 +132,6 @@ export default function CustomDrawer(props: any) {
         />
         <DrawerItem
           label="Ajudar um pet"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
-          label="Apadrinhar um pet"
           onPress={() => props.navigation.navigate("(profile)")}
         />
       </DrawerSection>
