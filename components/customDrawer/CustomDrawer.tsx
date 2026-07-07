@@ -96,10 +96,6 @@ export default function CustomDrawer(props: any) {
         />
         <DrawerItem label="Meus Pets" onPress={handleMeusPets} />
         <DrawerItem
-          label="Favoritos"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
           label="Chat"
           onPress={() => {
             if (auth.currentUser) {
@@ -116,10 +112,7 @@ export default function CustomDrawer(props: any) {
         title="Atalhos"
         containerStyle={styles.shortcutSectionContainer}
       >
-        <DrawerItem
-          label="Notificações"
-          onPress={handleNotificacaoPress}
-        />
+        <DrawerItem label="Notificações" onPress={handleNotificacaoPress} />
         <DrawerItem label="Cadastrar um pet" onPress={handleCadastroPet} />
         <DrawerItem
           label="Adotar um pet"
@@ -133,51 +126,18 @@ export default function CustomDrawer(props: any) {
             props.navigation.navigate("(home)", { screen: "mapa" })
           }
         />
-        <DrawerItem
-          label="Ajudar um pet"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
-          label="Apadrinhar um pet"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-      </DrawerSection>
-
-      <DrawerSection
-        icon={{ name: "information-circle-outline" }}
-        title="Informações"
-        containerStyle={styles.infoSectionContainer}
-      >
-        <DrawerItem
-          label="Dicas"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
-          label="Eventos"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
-          label="Legislação"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
-          label="Termo de adoção"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
-        <DrawerItem
-          label="Histórias de adoção"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
       </DrawerSection>
 
       <DrawerSection
         icon={{ name: "settings-outline" }}
-        title="Configurações"
+        title="Sobre"
         containerStyle={styles.configSectionContainer}
       >
         <DrawerItem
-          label="Privacidade"
-          onPress={() => props.navigation.navigate("(profile)")}
+          label="Sobre os desenvolvedores"
+          onPress={() =>
+            props.navigation.navigate("(home)", { screen: "sobre" })
+          }
         />
       </DrawerSection>
 
