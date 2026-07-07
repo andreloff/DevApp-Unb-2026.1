@@ -130,10 +130,6 @@ export default function CustomDrawer(props: any) {
             props.navigation.navigate("(home)", { screen: "mapa" })
           }
         />
-        <DrawerItem
-          label="Ajudar um pet"
-          onPress={() => props.navigation.navigate("(profile)")}
-        />
       </DrawerSection>
 
       <DrawerSection
