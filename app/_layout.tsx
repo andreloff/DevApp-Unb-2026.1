@@ -20,7 +20,6 @@ export default function RootLayout() {
   ) {
     const notificationId = response.notification.request.identifier;
 
-    // Já processamos essa notificação específica antes — ignora
     if (processedNotificationIds.current.has(notificationId)) {
       return;
     }
@@ -44,14 +43,12 @@ export default function RootLayout() {
     }
   }
 
-  // Caso 1: app estava fechado — reage assim que o router estiver pronto
   useEffect(() => {
     if (lastNotificationResponse) {
       handleNotificationResponse(lastNotificationResponse);
     }
   }, [lastNotificationResponse]);
 
-  // Caso 2: app em background — listener direto
   useEffect(() => {
     listenerRef.current =
       Notifications.addNotificationResponseReceivedListener(
