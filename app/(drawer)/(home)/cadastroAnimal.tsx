@@ -162,7 +162,6 @@ export default function CadastroAnimal() {
     );
   };
   
-  // CORREÇÃO: Função unificada e sem duplicidade
   const toggleNecessidade = (item: string) => {
     setNecessidades((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
